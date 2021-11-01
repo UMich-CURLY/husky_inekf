@@ -1,0 +1,30 @@
+
+<package format="2">
+    <name>husky_inekf</name>
+    <version>0.0.0</version>
+    <description>The Husky invariant-ekf package</description>
+    <!-- One maintainer tag required, multiple allowed, one person per tag -->
+    <!-- Example:  -->
+    <!-- <maintainer email="jane.doe@example.com">Jane Doe</maintainer> -->
+    <maintainer email="tzuyuan@umich.edu">Justin</maintainer>
+
+    <!-- One license tag required, multiple allowed, one license per tag -->
+    <!-- Commonly used license strings: -->
+    <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+    <license>MIT</license>
+
+    <depend>roscpp</depend>
+    <depend>std_msgs</depend>
+    <depend>sensor_msgs</depend>
+    <depend>inekf_msgs</depend>
+    <depend>geometry_msgs</depend>
+    <depend>message_filters</depend>
+    <depend>tf</depend>
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <!-- The export tag contains other, unspecified, tags -->
+    <export>
+    <!-- Other tools can request additional information be placed here -->
+
+    </export>
+</package>
