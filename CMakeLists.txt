@@ -84,4 +84,5 @@ target_link_libraries(husky_estimator
     ${catkin_LIBRARIES}
     ${inekf_LIBRARIES}
     ${Boost_LIBRARIES}
+    husky_comms
 )

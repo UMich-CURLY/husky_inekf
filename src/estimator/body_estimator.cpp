@@ -114,6 +114,8 @@ void BodyEstimator::setContacts(CheetahState& state) {
     filter_.setContacts(contacts); // Set new contact states
 }
 
+// correctvelocity 
+
 // Assumes state encoders have been updated
 void BodyEstimator::correctKinematics(CheetahState& state) {
     // Correct state based on kinematics measurements (probably in cheetah inekf ros)
