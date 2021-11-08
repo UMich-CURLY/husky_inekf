@@ -19,6 +19,7 @@
 // #include "inekf_msgs/ContactArray.h"
 // #include "inekf_msgs/KinematicsArray.h"
 // #include "inekf_msgs/LandmarkArray.h"
+#include "std_msgs/Header.h"
 #include "core/InEKF.h"
 #include "tf/transform_listener.h"
 
@@ -29,6 +30,12 @@ class Measurement {
         uint64_t seq;
         double stamp;
         std::string frame_id;
+
+        MeasurementHeader(const std_msgs::Header& header) {
+            seq = (uint64_t) header.seq;
+            stamp = header.stamp.sec + header.stamp.nsec / 1000000000;
+            frame_id = header.frame_id;
+        }
     };
 
     public:
