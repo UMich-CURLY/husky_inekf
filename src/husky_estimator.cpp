@@ -16,10 +16,14 @@
 // Internal Libraries
 #include "utils/husky_data.hpp"
 #include "communication/husky_comms.h"
+#include "system/husky_system.hpp"
+
+#include "core/InEKF.h"
+
 
 // External Libraries
 #include "ros/ros.h"
-#include "InEKF.h"
+
 // Boost
 #include <boost/algorithm/string.hpp>
 // Threading
@@ -43,8 +47,8 @@ int main(int argc, char **argv)
     HuskyComms husky_comms(nh, &husky_data_buffer);
 
     // Initialize CheetahSystem
-    // CheetahSystem *system = new CheetahSystem(&lcm, &nh, &cdata_mtx, &cheetah_input_data);
-    // // system->setEstimator(std::make_shared<BodyEstimator>());
+    HuskySystem *system = new HuskySystem(&nh, &husky_data_buffer);
+    // system->setEstimator(std::make_shared<BodyEstimator>());
 
     // // //TODO: Listen/Respond Loop
     // bool received_data = true;

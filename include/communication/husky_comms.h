@@ -7,7 +7,7 @@
 
 class HuskyComms {
     public:
-        HuskyComms(ros::NodeHandle nh, husky_inekf::husky_data_t* husky_data_buffer);
+        HuskyComms(ros::NodeHandle nh, husky_inekf_data::husky_data_t* husky_data_buffer);
 
     private:
         void imuCallback(const sensor_msgs::Imu& imu_msg);
@@ -17,5 +17,5 @@ class HuskyComms {
         ros::Subscriber imu_sub_;
         ros::Subscriber odom_sub_;
 
-        husky_inekf::husky_data_t* husky_data_buffer_;
+        husky_inekf_data::husky_data_t* husky_data_buffer_;
 };

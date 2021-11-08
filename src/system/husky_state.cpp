@@ -1,27 +1,18 @@
-#include "system/cheetah_state.hpp"
+#include "system/husky_state.hpp"
 
-
-#include "kin/Jp_Body_to_FrontLeftFoot.h"
-#include "kin/Jp_Body_to_FrontRightFoot.h"
-#include "kin/Jp_Body_to_HindLeftFoot.h"
-#include "kin/Jp_Body_to_HindRightFoot.h"
-#include "kin/p_Body_to_FrontLeftFoot.h"
-#include "kin/p_Body_to_FrontRightFoot.h"
-#include "kin/p_Body_to_HindLeftFoot.h"
-#include "kin/p_Body_to_HindRightFoot.h"
 
 // Default Constructor
-CheetahState::CheetahState() {
+HuskyState::HuskyState() {
     this->clear();
 }
 
 // Constructor from cassie_out_t
-CheetahState::CheetahState(const cheetah_lcm_packet_t& cheetah_data) {
+HuskyState::HuskyState(const cheetah_lcm_packet_t& cheetah_data) {
     this->set(cheetah_data);
 }
 
 // Set q and dq from cheetah_lcm_data_t
-void CheetahState::set(const cheetah_lcm_packet_t& cheetah_data) { 
+void HuskyState::set(const cheetah_lcm_packet_t& cheetah_data) { 
 
     const std::shared_ptr<cheetah_inekf_lcm::ImuMeasurement<double>> imu_data = cheetah_data.imu;
     
@@ -44,18 +35,13 @@ void CheetahState::set(const cheetah_lcm_packet_t& cheetah_data) {
     q_.block<12,1>(6,0) = joint_state_data.get()->joint_position;
     dq_.block<12,1>(6,0) = joint_state_data.get()->joint_velocity;
 
-    const std::shared_ptr<cheetah_inekf_lcm::ContactsMeasurement> contact_data = cheetah_data.contact;
-    right_front_contact_ = contact_data.get()->getContacts()[0];
-    left_front_contact_  = contact_data.get()->getContacts()[1];
-    right_hind_contact_  = contact_data.get()->getContacts()[2];
-    left_hind_contact_   = contact_data.get()->getContacts()[3];
 
     return;
 }
 
 
 // Set q and dq to 0
-void CheetahState::clear() {
+void HuskyState::clear() {
     q_ = Eigen::Matrix<double,18,1>::Zero();
     dq_ = Eigen::Matrix<double,18,1>::Zero();
     // GRF_ = Eigen::Matrix<double,4,1>::Zero();
@@ -68,36 +54,36 @@ void CheetahState::clear() {
 
 
 // Get q and dq
-Eigen::Matrix<double,18,1>  CheetahState::q() const { return q_; }
-Eigen::Matrix<double,18,1>  CheetahState::dq() const { return dq_; }
+Eigen::Matrix<double,18,1>  HuskyState::q() const { return q_; }
+Eigen::Matrix<double,18,1>  HuskyState::dq() const { return dq_; }
 
 // Get base position
-Eigen::Vector3d  CheetahState::getPosition() const { return q_.segment<3>(0); }
+Eigen::Vector3d  HuskyState::getPosition() const { return q_.segment<3>(0); }
 
 // Get base quaternion
-Eigen::Quaternion<double>  CheetahState::getQuaternion() const { return Eigen::Quaternion<double>(this->getRotation()); }
+Eigen::Quaternion<double>  HuskyState::getQuaternion() const { return Eigen::Quaternion<double>(this->getRotation()); }
 
 // Get rotation matrix
-Eigen::Matrix3d  CheetahState::getRotation() const { return Euler2Rotation(this->getEulerAngles()); }
+Eigen::Matrix3d  HuskyState::getRotation() const { return Euler2Rotation(this->getEulerAngles()); }
 
 // Extract Euler angles and rates
-Eigen::Vector3d CheetahState::getEulerAngles() const { return q_.segment<3>(3); }
-Eigen::Vector3d CheetahState::getEulerRates() const { return dq_.segment<3>(3); }
+Eigen::Vector3d HuskyState::getEulerAngles() const { return q_.segment<3>(3); }
+Eigen::Vector3d HuskyState::getEulerRates() const { return dq_.segment<3>(3); }
 
-Eigen::Vector3d CheetahState::getAngularVelocity() const { 
+Eigen::Vector3d HuskyState::getAngularVelocity() const { 
     return EulerRates2AngularVelocity(this->getEulerAngles(), this->getEulerRates()); 
 }
 
 // Extract encoder positions
-Eigen::Matrix<double, 12, 1> CheetahState::getEncoderPositions() const{
+Eigen::Matrix<double, 12, 1> HuskyState::getEncoderPositions() const{
     return q_.segment<12>(6); //<! take 12 elements start from idx = 6
 }
 
-Eigen::Matrix<double,12,1> CheetahState::getEncoderVelocities() const {
+Eigen::Matrix<double,12,1> HuskyState::getEncoderVelocities() const {
     return dq_.segment<12>(6); //<! take 12 elements start from idx = 6
 }
 
-Eigen::Vector3d CheetahState::getKinematicVelocity() const {
+Eigen::Vector3d HuskyState::getKinematicVelocity() const {
     Eigen::Vector3d velocity = Eigen::Vector3d::Zero();
     Eigen::Vector3d w = this->getAngularVelocity();
     Eigen::Matrix<double,12,1> e = this->getEncoderPositions();
@@ -124,83 +110,83 @@ Eigen::Vector3d CheetahState::getKinematicVelocity() const {
     return velocity;
 }
 
-bool CheetahState::getLeftFrontContact() const {
+bool HuskyState::getLeftFrontContact() const {
     return left_front_contact_;
 }
 
-bool CheetahState::getLeftHindContact() const {
+bool HuskyState::getLeftHindContact() const {
     return left_hind_contact_;
 }
 
-bool CheetahState::getRightFrontContact() const {
+bool HuskyState::getRightFrontContact() const {
     return right_front_contact_;
 }
 
-bool CheetahState::getRightHindContact() const {
+bool HuskyState::getRightHindContact() const {
     return right_hind_contact_;
 }
 
-void CheetahState::setBaseRotation(const Eigen::Matrix3d& R) {
+void HuskyState::setBaseRotation(const Eigen::Matrix3d& R) {
     q_.segment<3>(3) = Rotation2Euler(R);
 }
 
-void CheetahState::setBasePosition(const Eigen::Vector3d& p) {
+void HuskyState::setBasePosition(const Eigen::Vector3d& p) {
     q_.segment<3>(0) = p;
 }
 
-void CheetahState::setBaseVelocity(const Eigen::Vector3d& v) {
+void HuskyState::setBaseVelocity(const Eigen::Vector3d& v) {
     dq_.segment<3>(0) = v;
 }
 
-Eigen::Vector3d CheetahState::getBodyVelocity() const { 
+Eigen::Vector3d HuskyState::getBodyVelocity() const { 
     Eigen::Vector3d v_world = dq_.segment<3>(0);
     Eigen::Matrix3d Rwb = this->getRotation();
     return Rwb.transpose() * v_world;
 }
 
 // Extract each DOF position by name
-double CheetahState::x() const { return q_(0); }
-double CheetahState::y() const { return q_(1); }
-double CheetahState::z() const { return q_(2); }
-double CheetahState::yaw() const { return q_(3); }
-double CheetahState::pitch() const { return q_(4); }
-double CheetahState::roll() const { return q_(5); }
-double CheetahState::rightFrontMotor1() const { return q_(6); }
-double CheetahState::rightFrontMotor2() const { return q_(7); }
-double CheetahState::rightFrontMotor3() const { return q_(8); }
-double CheetahState::leftFrontMotor1() const { return q_(9); }
-double CheetahState::leftFrontMotor2() const { return q_(10); }
-double CheetahState::leftFrontMotor3() const { return q_(11); }
-double CheetahState::rightHindMotor1() const { return q_(12); }
-double CheetahState::rightHindMotor2() const { return q_(13); }
-double CheetahState::rightHindMotor3() const { return q_(14); }
-double CheetahState::leftHindMotor1() const { return q_(15); }
-double CheetahState::leftHindMotor2() const { return q_(16); }
-double CheetahState::leftHindMotor3() const { return q_(17); }
+double HuskyState::x() const { return q_(0); }
+double HuskyState::y() const { return q_(1); }
+double HuskyState::z() const { return q_(2); }
+double HuskyState::yaw() const { return q_(3); }
+double HuskyState::pitch() const { return q_(4); }
+double HuskyState::roll() const { return q_(5); }
+double HuskyState::rightFrontMotor1() const { return q_(6); }
+double HuskyState::rightFrontMotor2() const { return q_(7); }
+double HuskyState::rightFrontMotor3() const { return q_(8); }
+double HuskyState::leftFrontMotor1() const { return q_(9); }
+double HuskyState::leftFrontMotor2() const { return q_(10); }
+double HuskyState::leftFrontMotor3() const { return q_(11); }
+double HuskyState::rightHindMotor1() const { return q_(12); }
+double HuskyState::rightHindMotor2() const { return q_(13); }
+double HuskyState::rightHindMotor3() const { return q_(14); }
+double HuskyState::leftHindMotor1() const { return q_(15); }
+double HuskyState::leftHindMotor2() const { return q_(16); }
+double HuskyState::leftHindMotor3() const { return q_(17); }
 
 // Extract each DOF velocity by name
-double CheetahState::dx() const { return dq_(0); }
-double CheetahState::dy() const { return dq_(1); }
-double CheetahState::dz() const { return dq_(2); }
-double CheetahState::dyaw() const { return dq_(3); }
-double CheetahState::dpitch() const { return dq_(4); }
-double CheetahState::droll() const { return dq_(5); }
-double CheetahState::drightFrontMotor1() const { return dq_(6); }
-double CheetahState::drightFrontMotor2() const { return dq_(7); }
-double CheetahState::drightFrontMotor3() const { return dq_(8); }
-double CheetahState::dleftFrontMotor1() const { return dq_(9); }
-double CheetahState::dleftFrontMotor2() const { return dq_(10); }
-double CheetahState::dleftFrontMotor3() const { return dq_(11); }
-double CheetahState::drightHindMotor1() const { return dq_(12); }
-double CheetahState::drightHindMotor2() const { return dq_(13); }
-double CheetahState::drightHindMotor3() const { return dq_(14); }
-double CheetahState::dleftHindMotor1() const { return dq_(15); }
-double CheetahState::dleftHindMotor2() const { return dq_(16); }
-double CheetahState::dleftHindMotor3() const { return dq_(17); }
+double HuskyState::dx() const { return dq_(0); }
+double HuskyState::dy() const { return dq_(1); }
+double HuskyState::dz() const { return dq_(2); }
+double HuskyState::dyaw() const { return dq_(3); }
+double HuskyState::dpitch() const { return dq_(4); }
+double HuskyState::droll() const { return dq_(5); }
+double HuskyState::drightFrontMotor1() const { return dq_(6); }
+double HuskyState::drightFrontMotor2() const { return dq_(7); }
+double HuskyState::drightFrontMotor3() const { return dq_(8); }
+double HuskyState::dleftFrontMotor1() const { return dq_(9); }
+double HuskyState::dleftFrontMotor2() const { return dq_(10); }
+double HuskyState::dleftFrontMotor3() const { return dq_(11); }
+double HuskyState::drightHindMotor1() const { return dq_(12); }
+double HuskyState::drightHindMotor2() const { return dq_(13); }
+double HuskyState::drightHindMotor3() const { return dq_(14); }
+double HuskyState::dleftHindMotor1() const { return dq_(15); }
+double HuskyState::dleftHindMotor2() const { return dq_(16); }
+double HuskyState::dleftHindMotor3() const { return dq_(17); }
 
 
 // Print out state information
-std::ostream& operator<<(std::ostream& os, const  CheetahState& obj) {
+std::ostream& operator<<(std::ostream& os, const  HuskyState& obj) {
     os << "q: [";
     for (int i=0; i<obj.q_.rows()-1; ++i) {
         os << obj.q_(i) << ", ";

@@ -5,11 +5,10 @@
 #include <Eigen/Dense>
 #include <vector>
 #include "ros/ros.h"
-#include "utils/cheetah_data_t.hpp"
-#include "system/cheetah_state.hpp"
-#include "InEKF.h"
-#include <lcm/lcm-cpp.hpp>
-#include "communication/lcm-types/cheetah_inekf_lcm/pose_t.hpp"
+#include "utils/husky_data.hpp"
+#include "system/husky_state.hpp"
+#include "core/InEKF.h"
+
 #include "geometry_msgs/Point.h"
 #include "nav_msgs/Path.h"
 // #include "visualization_msgs/MarkerArray.h"
@@ -19,7 +18,7 @@ class BodyEstimator {
 
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        BodyEstimator(lcm::LCM* lcm);
+        BodyEstimator();
         bool enabled();
         void enableFilter();
         void disable();
@@ -27,7 +26,6 @@ class BodyEstimator {
         void initBias(cheetah_lcm_packet_t& cheetah_data);
         // void initState();
         void initState(const double t, const cheetah_lcm_packet_t& cheetah_data, const CheetahState& state);
-        void setContacts(CheetahState& state);
         void update(cheetah_lcm_packet_t& cheetah_data, CheetahState& state);
         void correctKinematics(CheetahState& state);
         inekf::InEKF getFilter() const;
@@ -37,8 +35,6 @@ class BodyEstimator {
         void publishPose(double time, std::string map_frame_id, uint32_t seq);
 
     private:
-        // LCM related
-        lcm::LCM* lcm_;
         std::string LCM_POSE_CHANNEL;
         // ROS related
         ros::Publisher visualization_pub_;

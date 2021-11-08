@@ -1,4 +1,4 @@
-#include "system/cheetah_system.hpp"
+#include "system/husky_system.hpp"
 // Thread safe locking
 #include <boost/thread/condition.hpp>
 #include <boost/thread/mutex.hpp>
@@ -8,13 +8,13 @@
 #include <vector>
 #include <numeric>
 
-CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* cdata_mtx, cheetah_lcm_data_t* cheetah_buffer): 
-    lcm_(lcm), nh_(nh), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm), pose_publisher_node_(nh) {
+HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf_data::husky_data_t* husky_data_buffer): 
+    nh_(nh), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm), pose_publisher_node_(nh) {
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
-        "/media/jetson256g/data/inekf_result/cheetah_inekf_pose.txt");
+        "/media/jetson256g/data/inekf_result/husky_inekf_pose.txt");
     nh_->param<std::string>("/settings/system_inekf_tum_pose_filename", tum_file_name_, 
-        "/media/jetson256g/data/inekf_result/cheetah_inekf_tum_pose.txt");
+        "/media/jetson256g/data/inekf_result/husky_inekf_tum_pose.txt");
 
     std::ofstream outfile(file_name_);
     std::ofstream tum_outfile(tum_file_name_);
@@ -26,35 +26,47 @@ CheetahSystem::CheetahSystem(lcm::LCM* lcm, ros::NodeHandle* nh, boost::mutex* c
 
 }
 
-void CheetahSystem::step() {
-    bool hasUpdate = updateNextPacket();
+void HuskySystem::step() {
+    
+    // if the estimator is initialized
+    if (estimator_.enabled()){
 
-    if (hasUpdate) {
-        state_.set(cheetah_packet_);
+        // if IMU measurement exists we do prediction
+        if(updateNextIMU()){
+            estimator_.update(imu_packet_,state_);
+        }
 
-        if (estimator_.enabled()) {
-            estimator_.setContacts(state_);
+        // if velocity measurement exsits we do correction
+        if(updateNextJointState()){
+            estimator_.correctVelocity(joint_state_packet_,state_);
+        }
 
-            // estimator.update propagate and correct (if contact exists) the filter
-            estimator_.update(cheetah_packet_, state_);
-
-            if (enable_pose_publisher_) {
+        if (enable_pose_publisher_) {
                 pose_publisher_node_.posePublish(state_);
                 poseCallback(state_);
-            }
+        }        
+
+    }
+    // initialization
+    else{
+
+        // wait until we receive imu msg
+        while(!updateNextIMU()){};
+        // wait until we receive joint state msg
+        while(!updateNextJointState()){};
+
+        std::cout << "Initialized initState" << std::endl;
+        if (estimator_.biasInitialized()) {
+            estimator_.initState(imu_packet_, joint_state_packet_, state_);
+            estimator_.enableFilter();
         } else {
-            std::cout << "Initialized initState" << std::endl;
-            if (estimator_.biasInitialized()) {
-                estimator_.initState(cheetah_packet_.getTime(), cheetah_packet_, state_);
-                estimator_.enableFilter();
-            } else {
-                estimator_.initBias(cheetah_packet_);
-            }
+            estimator_.initBias(imu_packet_);
         }
     }
+
 }
 
-void CheetahSystem::poseCallback(const CheetahState& state_) {
+void HuskySystem::poseCallback(const HuskyState& state_) {
     if (file_name_.size() > 0) {
         // ROS_INFO_STREAM("write new pose\n");
         std::ofstream outfile(file_name_,std::ofstream::out | std::ofstream::app );
@@ -71,28 +83,28 @@ void CheetahSystem::poseCallback(const CheetahState& state_) {
 
 // Private Functions
 
-bool CheetahSystem::updateNextPacket() {
-    //Copy data to be handled in queues (lock/unlock)
-    bool hasUpdated = false;
-    cdata_mtx_->lock();
-    if (!cheetah_buffer_->timestamp_q.empty() &&
-        !cheetah_buffer_->imu_q.empty() &&
-        !cheetah_buffer_->joint_state_q.empty() &&
-        !cheetah_buffer_->contact_q.empty()) 
-    {
-        hasUpdated = true;
-        double timestamp = cheetah_buffer_->timestamp_q.front();
-        cheetah_packet_.setTime(timestamp);
-        cheetah_packet_.imu = cheetah_buffer_->imu_q.front();
-        cheetah_packet_.joint_state = cheetah_buffer_->joint_state_q.front();
-        cheetah_packet_.contact = cheetah_buffer_->contact_q.front();
+// bool HuskySystem::updateNextPacket() {
+//     //Copy data to be handled in queues (lock/unlock)
+//     bool hasUpdated = false;
+//     cdata_mtx_->lock();
+//     if (!cheetah_buffer_->timestamp_q.empty() &&
+//         !cheetah_buffer_->imu_q.empty() &&
+//         !cheetah_buffer_->joint_state_q.empty() &&
+//         !cheetah_buffer_->contact_q.empty()) 
+//     {
+//         hasUpdated = true;
+//         double timestamp = cheetah_buffer_->timestamp_q.front();
+//         cheetah_packet_.setTime(timestamp);
+//         cheetah_packet_.imu = cheetah_buffer_->imu_q.front();
+//         cheetah_packet_.joint_state = cheetah_buffer_->joint_state_q.front();
+//         cheetah_packet_.contact = cheetah_buffer_->contact_q.front();
 
-        cheetah_buffer_->timestamp_q.pop();
-        cheetah_buffer_->imu_q.pop();
-        cheetah_buffer_->joint_state_q.pop();
-        cheetah_buffer_->contact_q.pop();
-    }
-    cdata_mtx_->unlock();
+//         cheetah_buffer_->timestamp_q.pop();
+//         cheetah_buffer_->imu_q.pop();
+//         cheetah_buffer_->joint_state_q.pop();
+//         cheetah_buffer_->contact_q.pop();
+//     }
+//     cdata_mtx_->unlock();
 
-    return hasUpdated;
-}
+//     return hasUpdated;
+// }

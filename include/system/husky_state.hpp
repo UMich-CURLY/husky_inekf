@@ -12,18 +12,18 @@
 #include <Eigen/Dense>
 #include "ros/ros.h"
 
-//Cheetah Libraries
-#include "utils/cheetah_data_t.hpp"
+//Husky Libraries
+#include "system/husky_state.hpp"
 #include "utils/utils.hpp"
 // #include "RosPublisher.h"
 // #include "PassiveTimeSync.h"
 
-class CheetahState {
+class HuskyState {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        CheetahState();
-//          CheetahState(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
-        CheetahState(const cheetah_lcm_packet_t& cheetah_data);
+        HuskyState();
+//          HuskyState(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
+        HuskyState(const cheetah_lcm_packet_t& cheetah_data);
 
 //         void set(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
         void set(const cheetah_lcm_packet_t& cheetah_data);
@@ -96,16 +96,12 @@ class CheetahState {
         double dleftHindMotor2() const;
         double dleftHindMotor3() const;
 
-        friend std::ostream& operator<<(std::ostream& os, const  CheetahState& obj);  
+        friend std::ostream& operator<<(std::ostream& os, const  HuskyState& obj);  
 
     private:
         Eigen::Matrix<double, 18,1> q_;
         Eigen::Matrix<double, 18,1> dq_;
         Eigen::Matrix<double,4,1> GRF_; //!< ground reaction force
-        bool left_front_contact_;
-        bool left_hind_contact_;
-        bool right_front_contact_;
-        bool right_hind_contact_;
 };
 
 #endif

@@ -31,11 +31,11 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 message("EIGEN3_INCLUDE_DIR: " ${EIGEN3_INCLUDE_DIR})
 
 # InEKF 
-find_package(inekf REQUIRED)
-include_directories(${inekf_INCLUDE_DIRS})
-message("inekf_INCLUDE_DIR: " ${inekf_INCLUDE_DIRS})
-link_directories(${inekf_LIBRARY_DIRS})
-message("inekf_LIBRARY_DIRS: " ${inekf_LIBRARY_DIRS})
+# find_package(inekf REQUIRED)
+# include_directories(${inekf_INCLUDE_DIRS})
+# message("inekf_INCLUDE_DIR: " ${inekf_INCLUDE_DIRS})
+# link_directories(${inekf_LIBRARY_DIRS})
+# message("inekf_LIBRARY_DIRS: " ${inekf_LIBRARY_DIRS})
 
 # Boost
 find_package(Boost 1.58 REQUIRED COMPONENTS system)
@@ -82,7 +82,6 @@ add_library(husky_comms "${PROJECT_SOURCE_DIR}/src/communication/husky_comms.cpp
 add_executable(husky_estimator "${PROJECT_SOURCE_DIR}/src/husky_estimator.cpp")
 target_link_libraries(husky_estimator
     ${catkin_LIBRARIES}
-    ${inekf_LIBRARIES}
     ${Boost_LIBRARIES}
     husky_comms
 )

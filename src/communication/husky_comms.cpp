@@ -1,6 +1,6 @@
 #include "communication/husky_comms.h"
 
-HuskyComms::HuskyComms( ros::NodeHandle nh, husky_inekf::husky_data_t* husky_data_buffer)
+HuskyComms::HuskyComms( ros::NodeHandle nh, husky_inekf_data::husky_data_t* husky_data_buffer)
                         : nh_(nh), husky_data_buffer_(husky_data_buffer) 
 {
     std::string imu_topic, odom_topic;

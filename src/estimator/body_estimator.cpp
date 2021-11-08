@@ -1,16 +1,8 @@
 #include "estimator/body_estimator.hpp"
 
-#include "kin/H_Body_to_FrontLeftFoot.h"
-#include "kin/H_Body_to_FrontRightFoot.h"
-#include "kin/H_Body_to_HindLeftFoot.h"
-#include "kin/H_Body_to_HindRightFoot.h"
-#include "kin/Jp_Body_to_FrontLeftFoot.h"
-#include "kin/Jp_Body_to_FrontRightFoot.h"
-#include "kin/Jp_Body_to_HindLeftFoot.h"
-#include "kin/Jp_Body_to_HindRightFoot.h"
 
-BodyEstimator::BodyEstimator(lcm::LCM* lcm) :
-    lcm_(lcm), t_prev_(0), imu_prev_(Eigen::Matrix<double,6,1>::Zero()) {
+BodyEstimator::BodyEstimator() :
+    t_prev_(0), imu_prev_(Eigen::Matrix<double,6,1>::Zero()) {
 
     // Create private node handle
     ros::NodeHandle nh("~");
@@ -37,9 +29,7 @@ BodyEstimator::BodyEstimator(lcm::LCM* lcm) :
     if (nh.getParam("/noise/accelerometer_bias_std", std)) { 
         params.setAccelerometerBiasNoise(std);
     }
-    if (nh.getParam("/noise/contact_std", std)) { 
-        params.setContactNoise(std);
-    }
+    
     filter_.setNoiseParams(params);
     std::cout << "Noise parameters are initialized to: \n";
     std::cout << filter_.getNoiseParams() << std::endl;
@@ -75,7 +65,7 @@ void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& sta
     if (dt > 0)
         filter_.Propagate(imu_prev_, dt); 
 
-    correctKinematics(state);
+    // correctKinematics(state);
 
     ///TODO: Check if imu strapdown model is correct
     inekf::RobotState estimate = filter_.getState();
@@ -101,20 +91,13 @@ void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& sta
     }
 }
 
-// Assumes state contacts have been updated
-void BodyEstimator::setContacts(CheetahState& state) {
-    // Update contact information
-    const uint8_t CONTACT_THRESHOLD = 1;
-    std::vector<std::pair<int,bool>> contacts;
-    contacts.push_back(std::pair<int,bool> (0, state.getRightFrontContact())); 
-    contacts.push_back(std::pair<int,bool> (1, state.getLeftFrontContact())); 
-    contacts.push_back(std::pair<int,bool> (2, state.getRightHindContact())); 
-    contacts.push_back(std::pair<int,bool> (3, state.getLeftHindContact())); 
-
-    filter_.setContacts(contacts); // Set new contact states
-}
 
 // correctvelocity 
+void BodyEstimator::correctVelocity(HuskyState& state){
+
+
+}
+
 
 // Assumes state encoders have been updated
 void BodyEstimator::correctKinematics(CheetahState& state) {
