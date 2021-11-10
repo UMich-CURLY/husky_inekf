@@ -836,6 +836,57 @@ void InEKF::RemovePriorLandmarks(const std::vector<int> landmark_ids) {
 }
 
 
+// Correct using measured body velocity with the estimated velocity
+void InEKF::CorrectVelocity(const Eigen::Vector3d& measured_velocity, const Eigen::Matrix3d& covariance) {
+    Eigen::VectorXd Y, b;
+    Eigen::MatrixXd H, N, PI;
+
+    // Fill out observation data
+    int dimX = state_.dimX();
+    int dimTheta = state_.dimTheta();
+    int dimP = state_.dimP();
+
+    // Fill out Y
+    // Y.conservativeResize(dimX, Eigen::NoChange);
+    // Y.segment(0,dimX) = Eigen::VectorXd::Zero(dimX);
+    // Y.segment<3>(0) = measured_velocity;
+    // Y(3) = -1;       
+
+    // // Fill out b
+    // b.conservativeResize(dimX, Eigen::NoChange);
+    // b.segment(0,dimX) = Eigen::VectorXd::Zero(dimX);
+    // b(3) = -1;       
+
+    // Fill out H
+    H.conservativeResize(3, dimP);
+    H.block<3,dimP>(0,0) = Eigen::MatrixXd::Zero(3,dimP);
+    H.block<3,3>(0,3) = Eigen::Matrix3d::Identity(); 
+
+    // Fill out N
+    N.conservativeResize(3, 3);
+    N = covariance;
+
+    // Fill out PI      
+    // PI.conservativeResize(3, dimX);
+    // PI.block(0,0,3,dimX) = Eigen::MatrixXd::Zero(3,dimX);
+    // PI.block(0,0,3,3) = Eigen::Matrix3d::Identity();
+
+    // Fill out Z
+    // Z = X*Y-b = PI*X*Y 
+    Eigen::Matrix3d R = state_.getRotation();
+    Eigen::Vector3d v = state_.getVelocity();
+
+    startIndex = Z.rows();
+    Z.conservativeResize(startIndex, Eigen::NoChange);
+    Z.segment(0,3) = R*measured_velocity - v; 
+
+
+    // Correct state using stacked observation
+    if (Z.rows()>0) {
+        this->CorrectRightInvariant(Z,H,N);
+    }
+}
+
 // Corrects state using magnetometer measurements (Right Invariant)
 void InEKF::CorrectMagnetometer(const Eigen::Vector3d& measured_magnetic_field, const Eigen::Matrix3d& covariance) {
     // Eigen::VectorXd Y, b;
@@ -953,6 +1004,7 @@ void InEKF::CorrectPosition(const Eigen::Vector3d& measured_position, const Eige
     //     // cout << obs << endl;
     // }
 }
+
 
 
 // Observation of absolute z-position of contact points (Left-Invariant Measurement)

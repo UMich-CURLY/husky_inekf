@@ -28,6 +28,7 @@ class BodyEstimator {
         void initState(const double t, const cheetah_lcm_packet_t& cheetah_data, const CheetahState& state);
         void update(cheetah_lcm_packet_t& cheetah_data, CheetahState& state);
         void correctKinematics(CheetahState& state);
+        void correctVelocity(HuskyState& state);
         inekf::InEKF getFilter() const;
         inekf::RobotState getState() const;
         void publishMarkers(double time, std::string map_frame_id, uint32_t seq);

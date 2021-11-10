@@ -95,7 +95,7 @@ void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& sta
 // correctvelocity 
 void BodyEstimator::correctVelocity(HuskyState& state){
 
-
+    filter_.CorrectVelocity(measured_velocity, vel_covariance)
 }
 
 

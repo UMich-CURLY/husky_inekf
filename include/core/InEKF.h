@@ -201,6 +201,8 @@ the default.
          */
         void CorrectLandmarks(const vectorLandmarks& measured_landmarks);
 
+        void CorrectVelocity(const Eigen::Vector3d& measured_velocity, const Eigen::Matrix3d& covariance);
+
         /** TODO: Untested magnetometer measurement*/
         void CorrectMagnetometer(const Eigen::Vector3d& measured_magnetic_field, const Eigen::Matrix3d& covariance);
         /** TODO: Untested GPS measurement*/
