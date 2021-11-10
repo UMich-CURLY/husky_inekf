@@ -9,7 +9,7 @@
 #include <numeric>
 
 HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf_data::husky_data_t* husky_data_buffer): 
-    nh_(nh), ts_(0.05, 0.05), cheetah_buffer_(cheetah_buffer), cdata_mtx_(cdata_mtx), estimator_(lcm), pose_publisher_node_(nh) {
+    nh_(nh), ts_(0.05, 0.05), husky_data_buffer_(husky_data_buffer), estimator_(lcm), pose_publisher_node_(nh) {
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
         "/media/jetson256g/data/inekf_result/husky_inekf_pose.txt");
@@ -42,8 +42,8 @@ void HuskySystem::step() {
         }
 
         if (enable_pose_publisher_) {
-                pose_publisher_node_.posePublish(state_);
-                poseCallback(state_);
+            pose_publisher_node_.posePublish(state_);
+            poseCallback(state_);
         }        
 
     }
@@ -83,28 +83,24 @@ void HuskySystem::poseCallback(const HuskyState& state_) {
 
 // Private Functions
 
-// bool HuskySystem::updateNextPacket() {
-//     //Copy data to be handled in queues (lock/unlock)
-//     bool hasUpdated = false;
-//     cdata_mtx_->lock();
-//     if (!cheetah_buffer_->timestamp_q.empty() &&
-//         !cheetah_buffer_->imu_q.empty() &&
-//         !cheetah_buffer_->joint_state_q.empty() &&
-//         !cheetah_buffer_->contact_q.empty()) 
-//     {
-//         hasUpdated = true;
-//         double timestamp = cheetah_buffer_->timestamp_q.front();
-//         cheetah_packet_.setTime(timestamp);
-//         cheetah_packet_.imu = cheetah_buffer_->imu_q.front();
-//         cheetah_packet_.joint_state = cheetah_buffer_->joint_state_q.front();
-//         cheetah_packet_.contact = cheetah_buffer_->contact_q.front();
+bool HuskySystem::updateNextIMU() {
+    husky_data_buffer_->imu_mutex.lock();
 
-//         cheetah_buffer_->timestamp_q.pop();
-//         cheetah_buffer_->imu_q.pop();
-//         cheetah_buffer_->joint_state_q.pop();
-//         cheetah_buffer_->contact_q.pop();
-//     }
-//     cdata_mtx_->unlock();
+    if (!husky_data_buffer_->imu_q.empty()) {
+        imu_packet_ = husky_data_buffer_->imu_q.front();
+        husky_data_buffer_->imu_q.pop();
+        return true;
+    }
+    return false;
+}
 
-//     return hasUpdated;
-// }
+bool HuskySystem::updateNextJointState() {
+    husky_data_buffer_->joint_state_mutex.lock();
+    
+    if (!husky_data_buffer_->joint_state_q.empty()) {
+        joint_state_packet_ = husky_data_buffer_->joint_state_q.front();
+        husky_data_buffer_->joint_state_q.pop();
+        return true;
+    }
+    return false;
+}

@@ -28,7 +28,7 @@ class HuskySystem {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         // Default Contructor
-        HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer);
+        HuskySystem(ros::NodeHandle* nh, husky_inekf_data::husky_data_t* husky_data_buffer);
         // Step forward one iteration of the system
         void step();
 
@@ -44,14 +44,12 @@ class HuskySystem {
         // Cassie's current state estimate
         HuskyState state_;
         // Husky data queues
-        husky_inekf_data::husky_data_t* husky_buffer_;
-        // Cheetah lcm data queue mtx
-        boost::mutex* cdata_mtx_;
+        husky_inekf_data::husky_data_t* husky_data_buffer_;
         // Invariant extended Kalman filter for estimating the robot's body state
         BodyEstimator estimator_;
         // Most recent data packet
-        husky_inekf_data::JointStateMeasurement joint_state_packet_;
-        husky_inekf_data::ImuMeasurement imu_packet_;
+        husky_inekf_data::JointStateMeasurement* joint_state_packet_;
+        husky_inekf_data::ImuMeasurement<double>* imu_packet_;
 
         // Update most recent packet to use
         bool updateNextIMU();
