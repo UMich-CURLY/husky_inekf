@@ -23,7 +23,7 @@ class HuskyState {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         HuskyState();
 //          HuskyState(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
-        HuskyState(const cheetah_lcm_packet_t& cheetah_data);
+        // HuskyState(const cheetah_lcm_packet_t& cheetah_data);
 
 //         void set(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
         void set(const cheetah_lcm_packet_t& cheetah_data);

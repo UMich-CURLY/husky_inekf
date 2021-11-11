@@ -7,9 +7,9 @@ HuskyState::HuskyState() {
 }
 
 // Constructor from cassie_out_t
-HuskyState::HuskyState(const cheetah_lcm_packet_t& cheetah_data) {
-    this->set(cheetah_data);
-}
+// HuskyState::HuskyState(const cheetah_lcm_packet_t& cheetah_data) {
+//     this->set(cheetah_data);
+// }
 
 // Set q and dq from cheetah_lcm_data_t
 void HuskyState::set(const cheetah_lcm_packet_t& cheetah_data) { 

@@ -61,12 +61,12 @@ class Landmark {
 class VelocityMeasurement {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-        Velocity(int id_in, Eigen::Vector3d velocity_in, Eigen::Matrix3d covariance_in): id(id_in), velocity(velocity_in), covariance(covariance_in) { }
+        VelocityMeasurement(int id_in, Eigen::Vector3d velocity_in, Eigen::Matrix3d covariance_in): id(id_in), velocity(velocity_in), covariance(covariance_in) { }
 
         int id;
         Eigen::Vector3d velocity;
         Eigen::Matrix3d covariance;
-}
+};
 
 
 /** A map with an integer as key and a Eigen::Vector3d as value. */
