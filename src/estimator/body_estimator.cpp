@@ -1,5 +1,6 @@
 #include "estimator/body_estimator.hpp"
 
+namespace husky_inekf{
 
 BodyEstimator::BodyEstimator() :
     t_prev_(0), imu_prev_(Eigen::Matrix<double,6,1>::Zero()) {
@@ -40,7 +41,7 @@ bool BodyEstimator::biasInitialized() { return bias_initialized_; }
 bool BodyEstimator::enabled() { return enabled_; }
 void BodyEstimator::enableFilter() { enabled_ = true; }
 
-void BodyEstimator::update(cheetah_lcm_packet_t& cheetah_data, CheetahState& state) {
+void BodyEstimator::update(const ImuMeasurement<double>& imu_packet_in, const HuskyState& state) {
     // Initialize bias from initial robot condition
     if (!bias_initialized_) {
         initBias(cheetah_data);
@@ -99,50 +100,6 @@ void BodyEstimator::correctVelocity(HuskyState& state){
 }
 
 
-// Assumes state encoders have been updated
-void BodyEstimator::correctKinematics(CheetahState& state) {
-    // Correct state based on kinematics measurements (probably in cheetah inekf ros)
-    Eigen::Matrix<double,12,1> encoders = state.getEncoderPositions();
-
-    Eigen::Matrix4d H_FL = H_Body_to_FrontLeftFoot(encoders); 
-    Eigen::Matrix4d H_FR = H_Body_to_FrontRightFoot(encoders);
-    Eigen::Matrix4d H_HL = H_Body_to_HindLeftFoot(encoders); 
-    Eigen::Matrix4d H_HR = H_Body_to_HindRightFoot(encoders);
-    Eigen::Matrix<double,3,12> JpFL = Jp_Body_to_FrontLeftFoot(encoders);
-    Eigen::Matrix<double,3,12> JpFR = Jp_Body_to_FrontRightFoot(encoders);
-    Eigen::Matrix<double,3,12> JpHL = Jp_Body_to_HindLeftFoot(encoders);
-    Eigen::Matrix<double,3,12> JpHR = Jp_Body_to_HindRightFoot(encoders);
-    Eigen::Matrix<double,6,6> covFL = Eigen::Matrix<double,6,6>::Identity();
-    Eigen::Matrix<double,6,6> covFR = Eigen::Matrix<double,6,6>::Identity();
-    Eigen::Matrix<double,6,6> covHL = Eigen::Matrix<double,6,6>::Identity();
-    Eigen::Matrix<double,6,6> covHR = Eigen::Matrix<double,6,6>::Identity();
-    covFL.block<3,3>(3,3) = JpFL*encoder_cov_*JpFL.transpose() + prior_kinematics_cov_;
-    covFR.block<3,3>(3,3) = JpFR*encoder_cov_*JpFR.transpose() + prior_kinematics_cov_;
-    covHL.block<3,3>(3,3) = JpHL*encoder_cov_*JpHL.transpose() + prior_kinematics_cov_;
-    covHR.block<3,3>(3,3) = JpHR*encoder_cov_*JpHR.transpose() + prior_kinematics_cov_;
-    inekf::Kinematics rightFrontFoot(0, H_FR, covFR);
-    inekf::Kinematics leftFrontFoot(1, H_FL, covFL);
-    inekf::Kinematics rightHindFoot(2, H_HR, covHR);
-    inekf::Kinematics leftHindFoot(3, H_HL, covHL);
-    inekf::vectorKinematics kinematics;
-    kinematics.push_back(rightFrontFoot);
-    kinematics.push_back(leftFrontFoot);
-    kinematics.push_back(rightHindFoot);
-    kinematics.push_back(leftHindFoot);  
-
-    filter_.CorrectKinematics(kinematics);
-    if (estimator_debug_enabled_) {
-        auto position = filter_.getState().getPosition();
-        ROS_INFO("Kinematics correction complete x: %0.6f y: %0.6f z: %0.6f\n", 
-                position[0],
-                position[1], 
-                position[2]);
-    }
-    if (lcm_publish_visualization_markers_) {
-        publishPose(t_prev_, "/cheetah/imu", seq_);
-    }
-}
-
 // Publish current pose over lcm & and save to ros
 void BodyEstimator::publishPose(double time, std::string map_frame_id, uint32_t seq) {
     cheetah_inekf_lcm::pose_t pose;
@@ -160,7 +117,7 @@ void BodyEstimator::publishPose(double time, std::string map_frame_id, uint32_t 
     lcm_->publish(LCM_POSE_CHANNEL, &pose);
 }
 
-void BodyEstimator::initBias(cheetah_lcm_packet_t& cheetah_data) {
+void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
     if (!static_bias_initialization_) {
         bias_initialized_ = true;
         return;
@@ -168,16 +125,16 @@ void BodyEstimator::initBias(cheetah_lcm_packet_t& cheetah_data) {
     // Initialize bias based on imu orientation and static assumption
     if (bias_init_vec_.size() < 250) {
         Eigen::Vector3d w, a;
-        w << cheetah_data.imu.get()->angular_velocity.x, 
-             cheetah_data.imu.get()->angular_velocity.y, 
-             cheetah_data.imu.get()->angular_velocity.z;
-        a << cheetah_data.imu.get()->linear_acceleration.x,
-             cheetah_data.imu.get()->linear_acceleration.y,
-             cheetah_data.imu.get()->linear_acceleration.z;
-        Eigen::Quaternion<double> quat(cheetah_data.imu.get()->orientation.w, 
-                                       cheetah_data.imu.get()->orientation.x,
-                                       cheetah_data.imu.get()->orientation.y,
-                                       cheetah_data.imu.get()->orientation.z); 
+        w << imu_packet_in.get()->angular_velocity.x, 
+             imu_packet_in.get()->angular_velocity.y, 
+             imu_packet_in.get()->angular_velocity.z;
+        a << imu_packet_in.get()->linear_acceleration.x,
+             imu_packet_in.get()->linear_acceleration.y,
+             imu_packet_in.get()->linear_acceleration.z;
+        Eigen::Quaternion<double> quat(imu_packet_in.get()->orientation.w, 
+                                       imu_packet_in.get()->orientation.x,
+                                       imu_packet_in.get()->orientation.y,
+                                       imu_packet_in.get()->orientation.z); 
         Eigen::Matrix3d R = quat.toRotationMatrix();
         Eigen::Vector3d g; g << 0,0,-9.81;
         a = (R.transpose()*(R*a + g)).eval();
@@ -198,7 +155,8 @@ void BodyEstimator::initBias(cheetah_lcm_packet_t& cheetah_data) {
     }
 }
 
-void BodyEstimator::initState(const double t, const cheetah_lcm_packet_t& cheetah_data, const CheetahState& state) {
+void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in, 
+                        const JointStateMeasurement& joint_state_packet_in, const HuskyState& state) {
     // Clear filter
     filter_.clear();
 
@@ -211,7 +169,6 @@ void BodyEstimator::initState(const double t, const cheetah_lcm_packet_t& cheeta
     Eigen::Vector3d v0 = R0*state.getKinematicVelocity(); // initial velocity
     // Eigen::Vector3d v0 = {0.0,0.0,0.0};
     Eigen::Vector3d p0 = {0.0, 0.0, 0.0}; // initial position, we set imu frame as world frame
-    // .
 
     R0 = Eigen::Matrix3d::Identity();
     inekf::RobotState initial_state; 
@@ -235,7 +192,7 @@ void BodyEstimator::initState(const double t, const cheetah_lcm_packet_t& cheeta
     std::cout << filter_.getState().getP() << std::endl;
 
     // Set enabled flag
-    t_prev_ = t;
+    t_prev_ = imu_packet_in.;
     imu_prev_ << cheetah_data.imu.get()->angular_velocity.x, 
                 cheetah_data.imu.get()->angular_velocity.y, 
                 cheetah_data.imu.get()->angular_velocity.z;
@@ -244,3 +201,5 @@ void BodyEstimator::initState(const double t, const cheetah_lcm_packet_t& cheeta
                 cheetah_data.imu.get()->linear_acceleration.z;;
     enabled_ = true;
 }
+
+} // end husky_inekf namespace

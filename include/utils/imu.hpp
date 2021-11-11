@@ -3,8 +3,9 @@
 #include "sensor_msgs/Imu.h"
 #include <stdint.h>
 #include <string>
+#include <memory>
 
-namespace husky_inekf_data {
+namespace husky_inekf {
 
     template <typename T>
     struct ImuOrientation {
@@ -67,4 +68,6 @@ namespace husky_inekf_data {
         private:
             Eigen::Matrix3d R_;
     };
-}
+
+    typedef std::shared_ptr<ImuMeasurement<double>> ImuMeasurementPtr;
+} // end husky_inekf namespace

@@ -23,7 +23,7 @@
 #include "core/InEKF.h"
 #include "tf/transform_listener.h"
 
-enum MeasurementType {EMPTY, IMU, KINEMATICS, CONTACT, JOINT_STATE};
+enum MeasurementType {EMPTY, IMU, JOINT_STATE};
 
 class Measurement {
     struct MeasurementHeader {

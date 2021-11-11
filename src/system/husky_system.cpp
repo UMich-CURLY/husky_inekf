@@ -8,7 +8,7 @@
 #include <vector>
 #include <numeric>
 
-HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf_data::husky_data_t* husky_data_buffer): 
+HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer): 
     nh_(nh), ts_(0.05, 0.05), husky_data_buffer_(husky_data_buffer), estimator_(lcm), pose_publisher_node_(nh) {
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
@@ -50,16 +50,20 @@ void HuskySystem::step() {
     // initialization
     else{
 
-        // wait until we receive imu msg
-        while(!updateNextIMU()){};
-        // wait until we receive joint state msg
-        while(!updateNextJointState()){};
+        
 
         std::cout << "Initialized initState" << std::endl;
         if (estimator_.biasInitialized()) {
+            // wait until we receive imu msg
+            while(!updateNextIMU()){};
+            // wait until we receive joint state msg
+            while(!updateNextJointState()){};
+            
             estimator_.initState(imu_packet_, joint_state_packet_, state_);
             estimator_.enableFilter();
         } else {
+            
+            while(!updateNextIMU()){};
             estimator_.initBias(imu_packet_);
         }
     }

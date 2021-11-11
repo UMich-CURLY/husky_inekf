@@ -19,7 +19,7 @@
 #include "system/husky_system.hpp"
 
 #include "core/InEKF.h"
-
+#include "core/NoiseParams.h"
 
 // External Libraries
 #include "ros/ros.h"

@@ -7,8 +7,9 @@
 #include <stdint.h>
 #include <vector>
 #include <string>
+#include <memory>
 
-namespace husky_inekf_data {
+namespace husky_inekf {
 
     class JointStateMeasurement : public Measurement {
         public:
@@ -116,4 +117,6 @@ namespace husky_inekf_data {
             double body_lin_vel_;
             double body_ang_vel_;
     };
-}
+
+    typedef std::shared_ptr<JointStateMeasurement> JointStateMeasurementPtr;
+} // end husky_inekf namespace

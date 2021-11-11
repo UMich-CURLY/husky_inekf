@@ -14,6 +14,7 @@
 // #include "visualization_msgs/MarkerArray.h"
 // #include "inekf_msgs/State.h"
 
+namespace husky_inekf{
 class BodyEstimator {
 
     public:
@@ -23,11 +24,11 @@ class BodyEstimator {
         void enableFilter();
         void disable();
         bool biasInitialized();
-        void initBias(cheetah_lcm_packet_t& cheetah_data);
+        void initBias(const ImuMeasurement<double>& imu_packet_in);
         // void initState();
-        void initState(const double t, const cheetah_lcm_packet_t& cheetah_data, const CheetahState& state);
-        void update(cheetah_lcm_packet_t& cheetah_data, CheetahState& state);
-        void correctKinematics(CheetahState& state);
+        void initState(const ImuMeasurement<double>& imu_packet_in, 
+                        const JointStateMeasurement& joint_state_packet_in, const HuskyState& state);
+        void update(const ImuMeasurement<double>& imu_packet_in, const HuskyState& state);
         void correctVelocity(HuskyState& state);
         inekf::InEKF getFilter() const;
         inekf::RobotState getState() const;
@@ -57,4 +58,5 @@ class BodyEstimator {
         const Eigen::Matrix<double,3,3> prior_kinematics_cov_ = 0.05*0.05 * Eigen::Matrix<double,3,3>::Identity(); // 5 cm std Adds to FK covariance
 };
 
+} // end husky_inekf namespace
 #endif // BODYESTIMATOR_H

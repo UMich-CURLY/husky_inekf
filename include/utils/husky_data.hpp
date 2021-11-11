@@ -11,16 +11,15 @@
 #include <memory>
 #include <queue>
 
-namespace husky_inekf_data {
+namespace husky_inekf {
 
 struct husky_data_t {
     husky_data_t() {}
 
     std::mutex imu_mutex;
     std::mutex joint_state_mutex;
-    std::queue<std::shared_ptr<husky_inekf_data::ImuMeasurement<double> > > imu_q;
-    std::queue<std::shared_ptr<husky_inekf_data::JointStateMeasurement> > joint_state_q;
+    std::queue<std::shared_ptr<ImuMeasurement<double> > > imu_q;
+    std::queue<std::shared_ptr<JointStateMeasurement> > joint_state_q;
 };
 
-
-}
+} // end husky_inekf namespace

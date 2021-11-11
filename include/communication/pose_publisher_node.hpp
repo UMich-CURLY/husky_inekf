@@ -18,7 +18,7 @@ class PosePublisherNode{
         ~PosePublisherNode();
 
         // Publishes pose
-        void posePublish(const CheetahState& state_);
+        void posePublish(const husky_inekf::HuskyState& state_);
 
     private:
         ros::NodeHandle* n_;

@@ -1,6 +1,6 @@
 #include "communication/husky_comms.h"
 
-HuskyComms::HuskyComms( ros::NodeHandle nh, husky_inekf_data::husky_data_t* husky_data_buffer)
+HuskyComms::HuskyComms( ros::NodeHandle nh, husky_inekf::husky_data_t* husky_data_buffer)
                         : nh_(nh), husky_data_buffer_(husky_data_buffer) 
 {
     std::string imu_topic, joint_topic;
@@ -17,7 +17,7 @@ HuskyComms::HuskyComms( ros::NodeHandle nh, husky_inekf_data::husky_data_t* husk
 void HuskyComms::imuCallback(const sensor_msgs::Imu& imu_msg) 
 {
     auto imu_ptr = 
-        std::make_shared<husky_inekf_data::ImuMeasurement<double> >( imu_msg );
+        std::make_shared<husky_inekf::ImuMeasurement<double> >( imu_msg );
 
     std::lock_guard<std::mutex> lock(husky_data_buffer_->imu_mutex);
     husky_data_buffer_->imu_q.push(imu_ptr);
@@ -27,7 +27,7 @@ void HuskyComms::imuCallback(const sensor_msgs::Imu& imu_msg)
 void HuskyComms::jointStateCallback(const sensor_msgs::JointState& joint_msg)
 {
     auto joint_ptr =
-        std::make_shared<husky_inekf_data::JointStateMeasurement>(joint_msg, 4);
+        std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4);
 
     std::lock_guard<std::mutex> lock(husky_data_buffer_->joint_state_mutex);
     husky_data_buffer_->joint_state_q.push(joint_ptr);

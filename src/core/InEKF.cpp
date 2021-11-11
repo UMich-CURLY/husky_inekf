@@ -11,7 +11,7 @@
  *  @date   September 25, 2018
  **/
 
-#include "InEKF.h"
+#include "core/InEKF.h"
 
 namespace inekf {
 
@@ -838,7 +838,7 @@ void InEKF::RemovePriorLandmarks(const std::vector<int> landmark_ids) {
 
 // Correct using measured body velocity with the estimated velocity
 void InEKF::CorrectVelocity(const Eigen::Vector3d& measured_velocity, const Eigen::Matrix3d& covariance) {
-    Eigen::VectorXd Y, b;
+    Eigen::VectorXd Z, Y, b;
     Eigen::MatrixXd H, N, PI;
 
     // Fill out observation data
@@ -859,8 +859,8 @@ void InEKF::CorrectVelocity(const Eigen::Vector3d& measured_velocity, const Eige
 
     // Fill out H
     H.conservativeResize(3, dimP);
-    H.block<3,dimP>(0,0) = Eigen::MatrixXd::Zero(3,dimP);
-    H.block<3,3>(0,3) = Eigen::Matrix3d::Identity(); 
+    H.block(0,0,3,dimP) = Eigen::MatrixXd::Zero(3,dimP);
+    H.block(0,3,3,3) = Eigen::Matrix3d::Identity(); 
 
     // Fill out N
     N.conservativeResize(3, 3);
@@ -876,8 +876,9 @@ void InEKF::CorrectVelocity(const Eigen::Vector3d& measured_velocity, const Eige
     Eigen::Matrix3d R = state_.getRotation();
     Eigen::Vector3d v = state_.getVelocity();
 
-    startIndex = Z.rows();
-    Z.conservativeResize(startIndex, Eigen::NoChange);
+
+    int startIndex = Z.rows();
+    Z.conservativeResize(startIndex+3, Eigen::NoChange);
     Z.segment(0,3) = R*measured_velocity - v; 
 
 

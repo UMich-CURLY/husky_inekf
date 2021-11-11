@@ -19,10 +19,10 @@
 #include <vector>
 #include <map>
 #include <algorithm>
-#include "RobotState.h"
-#include "NoiseParams.h"
-#include "LieGroup.h"
-#include "Observations.h"
+#include "core/RobotState.h"
+#include "core/NoiseParams.h"
+#include "core/LieGroup.h"
+#include "core/Observations.h"
 
 namespace inekf {
 

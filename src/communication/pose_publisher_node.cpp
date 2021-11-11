@@ -22,7 +22,7 @@ PosePublisherNode::PosePublisherNode(ros::NodeHandle* n) : n_(n) {
 PosePublisherNode::~PosePublisherNode() {}
 
 // Publishes pose
-void PosePublisherNode::posePublish(const CheetahState& state_) {
+void PosePublisherNode::posePublish(const husky_inekf::HuskyState& state_) {
     // std::array<float,3> cur_pose = pose_from_csv_.front();
     // pose_from_csv_.pop();
 

@@ -28,7 +28,7 @@ class HuskySystem {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         // Default Contructor
-        HuskySystem(ros::NodeHandle* nh, husky_inekf_data::husky_data_t* husky_data_buffer);
+        HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer);
         // Step forward one iteration of the system
         void step();
 
@@ -40,23 +40,23 @@ class HuskySystem {
         // ROS timestamp
         ros::Time timestamp_;
         // Passive Time Synchronizer
-        PassiveTimeSync ts_;
+        // PassiveTimeSync ts_;
         // Cassie's current state estimate
-        HuskyState state_;
+        husky_inekf::HuskyState state_;
         // Husky data queues
-        husky_inekf_data::husky_data_t* husky_data_buffer_;
+        husky_inekf::husky_data_t* husky_data_buffer_;
         // Invariant extended Kalman filter for estimating the robot's body state
-        BodyEstimator estimator_;
+        husky_inekf::BodyEstimator estimator_;
         // Most recent data packet
-        husky_inekf_data::JointStateMeasurement* joint_state_packet_;
-        husky_inekf_data::ImuMeasurement<double>* imu_packet_;
+        std::shared_ptr<husky_inekf::JointStateMeasurement> joint_state_packet_;
+        std::shared_ptr<husky_inekf::ImuMeasurement<double>> imu_packet_;
 
         // Update most recent packet to use
         bool updateNextIMU();
         bool updateNextJointState();
 
         // Publish output path
-        void poseCallback(const HuskyState& state_);
+        void poseCallback(const husky_inekf::HuskyState& state_);
         // Output file
         std::string file_name_;
         std::string tum_file_name_;

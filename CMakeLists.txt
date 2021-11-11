@@ -68,7 +68,17 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+file(GLOB inekf_core
+  "${PROJECT_SOURCE_DIR}/src/core/*.cpp"
+)
 add_library(husky_comms "${PROJECT_SOURCE_DIR}/src/communication/husky_comms.cpp")
+add_library(inekf_core ${inekf_core})
+add_library(husky_measurement "${PROJECT_SOURCE_DIR}/src/utils/measurement.cpp")
+add_library(utils "${PROJECT_SOURCE_DIR}/src/utils/utils.cpp")
+add_library(husky_state "${PROJECT_SOURCE_DIR}/src/system/husky_state.cpp")
+add_library(husky_system "${PROJECT_SOURCE_DIR}/src/system/husky_system.cpp")
+add_library(body_estimator "${PROJECT_SOURCE_DIR}/src/estimator/body_estimator.cpp")
+# add_library(pose_publisher_node "${PROJECT_SOURCE_DIR}/src/communication/pose_publisher_node.cpp")
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -84,4 +94,10 @@ target_link_libraries(husky_estimator
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
     husky_comms
+    inekf_core
+    husky_measurement
+    utils
+    husky_system
+    husky_state
+    body_estimator
 )
