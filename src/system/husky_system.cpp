@@ -91,6 +91,12 @@ bool HuskySystem::updateNextIMU() {
     if (!husky_data_buffer_->imu_q.empty()) {
         imu_packet_ = husky_data_buffer_->imu_q.front();
         husky_data_buffer_->imu_q.pop();
+
+        // TODO: process all imu measurements as a queue
+
+        // Update Husky State TODO: change set function to copy by referenceS
+        state_.setImu(imu_packet_);
+
         return true;
     }
     return false;
@@ -102,6 +108,12 @@ bool HuskySystem::updateNextJointState() {
     if (!husky_data_buffer_->joint_state_q.empty()) {
         joint_state_packet_ = husky_data_buffer_->joint_state_q.front();
         husky_data_buffer_->joint_state_q.pop();
+
+        // TODO: drop everything older than the top measurement on the stack 
+
+        // Update Husky State
+        state_.setJointState(joint_state_packet_);
+
         return true;
     }
     return false;

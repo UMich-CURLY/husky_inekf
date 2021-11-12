@@ -13,7 +13,8 @@
 #include "ros/ros.h"
 
 //Husky Libraries
-#include "system/husky_state.hpp"
+#include "utils/imu.hpp"
+#include "utils/joint_state.hpp"
 #include "utils/utils.hpp"
 // #include "RosPublisher.h"
 // #include "PassiveTimeSync.h"
@@ -24,16 +25,31 @@ class HuskyState {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         HuskyState();
-//          HuskyState(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
-        // HuskyState(const cheetah_lcm_packet_t& cheetah_data);
 
-//         void set(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
-        // void set(const cheetah_lcm_packet_t& cheetah_data);
+        template <typename T>
+        void setImu(
+            const std::shared_ptr<husky_inekf::ImuMeasurement<T>> next_imu) {
+
+            const auto imu_data = next_imu;
+            
+            Eigen::Vector3d euler = Rotation2Euler(this->getRotation());
+            // Set orientation rates
+            Eigen::Vector3d angularVelocity, eulerRates;
+            angularVelocity <<  imu_data.get()->angular_velocity.x, 
+                                imu_data.get()->angular_velocity.y, 
+                                imu_data.get()->angular_velocity.z;
+            eulerRates = AngularVelocity2EulerRates(euler, angularVelocity);
+            dq_.block<3,1>(3,0) = eulerRates;
+
+            return;
+        }
+        
+        void setJointState(
+            const std::shared_ptr<husky_inekf::JointStateMeasurement> 
+            next_joint_state);
         void setBaseRotation(const Eigen::Matrix3d& R);
         void setBasePosition(const Eigen::Vector3d& p);
         void setBaseVelocity(const Eigen::Vector3d& v);
-//         void setMotorPositions(const Eigen::Matrix<double,10,1>& qM);
-//         void setMotorVelocities(const Eigen::Matrix<double,10,1>& dqM);
         void clear();
 
         Eigen::Matrix<double,10,1> q() const;
@@ -44,7 +60,7 @@ class HuskyState {
         Eigen::Vector3d getEulerAngles() const;
         Eigen::Vector3d getEulerRates() const;
         Eigen::Matrix<double, 4, 1> getEncoderPositions() const;
-        Eigen::Matrix<double, 4,1> getEncoderVelocities() const;
+        Eigen::Matrix<double, 4, 1> getEncoderVelocities() const;
 //         Eigen::Matrix<double,10,1> getMotorPositions() const;
 //         Eigen::Matrix<double,10,1> getMotorVelocities() const;
 //         Eigen::Matrix<double,4,1> getGRF() const;
