@@ -10,6 +10,7 @@
 #include <thread>
 #include <memory>
 #include <queue>
+#include <stack>
 
 namespace husky_inekf {
 
@@ -19,7 +20,8 @@ struct husky_data_t {
     std::mutex imu_mutex;
     std::mutex joint_state_mutex;
     std::queue<std::shared_ptr<ImuMeasurement<double> > > imu_q;
-    std::queue<std::shared_ptr<JointStateMeasurement> > joint_state_q;
+    // Use vector like a stack, using vector to enable O(1) clear operation
+    std::vector<std::shared_ptr<JointStateMeasurement> > joint_state_q;
 };
 
 } // end husky_inekf namespace
