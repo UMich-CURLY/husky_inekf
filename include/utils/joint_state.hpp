@@ -67,27 +67,27 @@ namespace husky_inekf {
                 body_ang_vel_ = (vr - vl) / vehicle_track_width_;
             }
 
-            inline const Eigen::VectorXd& getJointPosition() {
+            inline const Eigen::VectorXd& getJointPosition() const {
                 return joint_position_;
             }
 
-            inline const Eigen::VectorXd& getJointVelocity() {
+            inline const Eigen::VectorXd& getJointVelocity() const {
                 return joint_velocity_;
             }
 
-            inline const Eigen::VectorXd& getJointEffort() {
+            inline const Eigen::VectorXd& getJointEffort() const {
                 return joint_effort_;
             }
 
-            inline const Eigen::VectorXd& getLinearVelocity() {
+            inline const Eigen::VectorXd& getLinearVelocity() const {
                 return linear_velocity_;
             }
 
-            inline double getBodyLinearVelocity() {
+            inline double getBodyLinearVelocity() const {
                 return body_lin_vel_;
             }
 
-            inline double getBodyAngularVelocity() {
+            inline double getBodyAngularVelocity() const {
                 return body_ang_vel_;
             }
     

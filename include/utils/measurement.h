@@ -30,6 +30,9 @@ class Measurement {
         uint64_t seq;
         double stamp;
         std::string frame_id;
+        
+        MeasurementHeader() {
+        }
 
         MeasurementHeader(const std_msgs::Header& header) {
             seq = (uint64_t) header.seq;
@@ -45,7 +48,7 @@ class Measurement {
 
         MeasurementHeader header;
 
-        double getTime();
+        double getTime() const;
         MeasurementType getType();
 
         friend std::ostream& operator<<(std::ostream& os, const Measurement& m);  

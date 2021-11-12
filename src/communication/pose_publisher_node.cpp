@@ -1,4 +1,4 @@
-#include "pose_publisher_node.hpp"
+#include "communication/pose_publisher_node.hpp"
 
 PosePublisherNode::PosePublisherNode(ros::NodeHandle* n) : n_(n) {
     // Create private node handle

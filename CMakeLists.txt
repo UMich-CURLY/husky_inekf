@@ -78,7 +78,7 @@ add_library(utils "${PROJECT_SOURCE_DIR}/src/utils/utils.cpp")
 add_library(husky_state "${PROJECT_SOURCE_DIR}/src/system/husky_state.cpp")
 add_library(husky_system "${PROJECT_SOURCE_DIR}/src/system/husky_system.cpp")
 add_library(body_estimator "${PROJECT_SOURCE_DIR}/src/estimator/body_estimator.cpp")
-# add_library(pose_publisher_node "${PROJECT_SOURCE_DIR}/src/communication/pose_publisher_node.cpp")
+add_library(pose_publisher_node "${PROJECT_SOURCE_DIR}/src/communication/pose_publisher_node.cpp")
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -100,4 +100,5 @@ target_link_libraries(husky_estimator
     husky_system
     husky_state
     body_estimator
+    pose_publisher_node
 )

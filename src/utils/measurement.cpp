@@ -22,7 +22,7 @@ Measurement::Measurement() {
     type_ = EMPTY;
 }
 // Getters
-double Measurement::getTime() {   
+double Measurement::getTime() const {   
     return header.stamp; 
 }
 MeasurementType Measurement::getType() { return type_; }

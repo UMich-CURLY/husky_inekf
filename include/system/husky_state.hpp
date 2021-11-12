@@ -80,10 +80,14 @@ class HuskyState {
         double dleftFrontMotor() const;
         double drightHindMotor() const;
         double dleftHindMotor() const;
+        
+        void setTime(double time_in){time_stamp_ = time_in;};
+        double getTime() const{return time_stamp_;};
 
         friend std::ostream& operator<<(std::ostream& os, const  HuskyState& obj);  
 
     private:
+        double time_stamp_;
         Eigen::Matrix<double, 10,1> q_;
         Eigen::Matrix<double, 10,1> dq_;
         Eigen::Matrix<double,4,1> GRF_; //!< ground reaction force

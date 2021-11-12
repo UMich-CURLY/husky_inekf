@@ -9,7 +9,7 @@
 #include <numeric>
 
 HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer): 
-    nh_(nh), ts_(0.05, 0.05), husky_data_buffer_(husky_data_buffer), estimator_(lcm), pose_publisher_node_(nh) {
+    nh_(nh), husky_data_buffer_(husky_data_buffer), pose_publisher_node_(nh) {
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
         "/media/jetson256g/data/inekf_result/husky_inekf_pose.txt");
@@ -33,12 +33,12 @@ void HuskySystem::step() {
 
         // if IMU measurement exists we do prediction
         if(updateNextIMU()){
-            estimator_.update(imu_packet_,state_);
+            estimator_.propagateIMU(*(imu_packet_.get()),state_);
         }
 
         // if velocity measurement exsits we do correction
         if(updateNextJointState()){
-            estimator_.correctVelocity(joint_state_packet_,state_);
+            estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
         }
 
         if (enable_pose_publisher_) {
@@ -50,8 +50,6 @@ void HuskySystem::step() {
     // initialization
     else{
 
-        
-
         std::cout << "Initialized initState" << std::endl;
         if (estimator_.biasInitialized()) {
             // wait until we receive imu msg
@@ -59,18 +57,18 @@ void HuskySystem::step() {
             // wait until we receive joint state msg
             while(!updateNextJointState()){};
             
-            estimator_.initState(imu_packet_, joint_state_packet_, state_);
+            estimator_.initState(*(imu_packet_.get()), *(joint_state_packet_.get()), state_);
             estimator_.enableFilter();
         } else {
             
             while(!updateNextIMU()){};
-            estimator_.initBias(imu_packet_);
+            estimator_.initBias(*(imu_packet_.get()));
         }
     }
 
 }
 
-void HuskySystem::poseCallback(const HuskyState& state_) {
+void HuskySystem::poseCallback(const husky_inekf::HuskyState& state_) {
     if (file_name_.size() > 0) {
         // ROS_INFO_STREAM("write new pose\n");
         std::ofstream outfile(file_name_,std::ofstream::out | std::ofstream::app );
@@ -78,7 +76,7 @@ void HuskySystem::poseCallback(const HuskyState& state_) {
         outfile.close();
         // tum style
         std::ofstream tum_outfile(tum_file_name_,std::ofstream::out | std::ofstream::app );
-        tum_outfile << cheetah_packet_.getTime() << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
+        tum_outfile << state_.getTime() << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
         <<" "<< state_.getQuaternion().y() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;
         
         tum_outfile.close();

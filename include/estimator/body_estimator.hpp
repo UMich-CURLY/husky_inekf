@@ -27,14 +27,14 @@ class BodyEstimator {
         void initBias(const ImuMeasurement<double>& imu_packet_in);
         // void initState();
         void initState(const ImuMeasurement<double>& imu_packet_in, 
-                        const JointStateMeasurement& joint_state_packet_in, const HuskyState& state);
-        void update(const ImuMeasurement<double>& imu_packet_in, const HuskyState& state);
-        void correctVelocity(HuskyState& state);
+                        const JointStateMeasurement& joint_state_packet_in, HuskyState& state);
+        void propagateIMU(const ImuMeasurement<double>& imu_packet_in, HuskyState& state);
+        void correctVelocity(const JointStateMeasurement& joint_state_packet_in, HuskyState& state);
         inekf::InEKF getFilter() const;
         inekf::RobotState getState() const;
         void publishMarkers(double time, std::string map_frame_id, uint32_t seq);
         void publishPath();
-        void publishPose(double time, std::string map_frame_id, uint32_t seq);
+        // void publishPose(double time, std::string map_frame_id, uint32_t seq);
 
     private:
         std::string LCM_POSE_CHANNEL;
@@ -54,8 +54,8 @@ class BodyEstimator {
         double t_prev_;
         uint32_t seq_;
         Eigen::Matrix<double,6,1> imu_prev_;
-        const Eigen::Matrix<double,12,12> encoder_cov_ = 0.0174533*0.0174533 * Eigen::Matrix<double,12,12>::Identity(); // 1 deg std dev 
-        const Eigen::Matrix<double,3,3> prior_kinematics_cov_ = 0.05*0.05 * Eigen::Matrix<double,3,3>::Identity(); // 5 cm std Adds to FK covariance
+        const Eigen::Matrix<double,4,4> encoder_cov_ = 0.0174533*0.0174533 * Eigen::Matrix<double,4,4>::Identity(); // 1 deg std dev 
+        const Eigen::Matrix<double,3,3> velocity_cov_ = 0.05 * 0.05 * Eigen::Matrix<double,3,3>::Identity(); // covariance of velocity measuremnts from wheel velocity.
 };
 
 } // end husky_inekf namespace

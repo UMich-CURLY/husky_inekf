@@ -41,21 +41,21 @@ bool BodyEstimator::biasInitialized() { return bias_initialized_; }
 bool BodyEstimator::enabled() { return enabled_; }
 void BodyEstimator::enableFilter() { enabled_ = true; }
 
-void BodyEstimator::update(const ImuMeasurement<double>& imu_packet_in, const HuskyState& state) {
+void BodyEstimator::propagateIMU(const ImuMeasurement<double>& imu_packet_in, HuskyState& state) {
     // Initialize bias from initial robot condition
     if (!bias_initialized_) {
-        initBias(cheetah_data);
+        initBias(imu_packet_in);
     }
 
     // Extract out current IMU data [w;a]
     Eigen::Matrix<double,6,1> imu;
-    imu << cheetah_data.imu.get()->angular_velocity.x,
-           cheetah_data.imu.get()->angular_velocity.y, 
-           cheetah_data.imu.get()->angular_velocity.z,
-           cheetah_data.imu.get()->linear_acceleration.x, 
-           cheetah_data.imu.get()->linear_acceleration.y , 
-           cheetah_data.imu.get()->linear_acceleration.z;
-    double t = cheetah_data.getTime();
+    imu << imu_packet_in.angular_velocity.x,
+           imu_packet_in.angular_velocity.y, 
+           imu_packet_in.angular_velocity.z,
+           imu_packet_in.linear_acceleration.x, 
+           imu_packet_in.linear_acceleration.y , 
+           imu_packet_in.linear_acceleration.z;
+    double t = imu_packet_in.getTime();
 
     // Propagate state based on IMU and contact data
     double dt = t - t_prev_;
@@ -78,44 +78,47 @@ void BodyEstimator::update(const ImuMeasurement<double>& imu_packet_in, const Hu
     state.setBaseRotation(R);
     state.setBasePosition(p);
     state.setBaseVelocity(v); 
+    state.setTime(t);
 
     // Store previous imu data
     t_prev_ = t;
     imu_prev_ = imu;
-    seq_ = cheetah_data.imu.get()->header.seq;
+    seq_ = imu_packet_in.header.seq;
 
     if (estimator_debug_enabled_) {
         ROS_INFO("IMU Propagation Complete: linacceleation x: %0.6f y: %.06f z: %0.6f \n", 
-            cheetah_data.imu.get()->linear_acceleration.x,
-            cheetah_data.imu.get()->linear_acceleration.y,
-            cheetah_data.imu.get()->linear_acceleration.z);
+            imu_packet_in.linear_acceleration.x,
+            imu_packet_in.linear_acceleration.y,
+            imu_packet_in.linear_acceleration.z);
     }
 }
 
 
 // correctvelocity 
-void BodyEstimator::correctVelocity(HuskyState& state){
+void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_packet_in, HuskyState& state){
 
-    filter_.CorrectVelocity(measured_velocity, vel_covariance)
+    Eigen::Vector3d measured_velocity = Eigen::Vector3d::Zero();
+    measured_velocity(0,0) = joint_state_packet_in.getBodyLinearVelocity();
+    filter_.CorrectVelocity(measured_velocity, velocity_cov_);
 }
 
 
 // Publish current pose over lcm & and save to ros
-void BodyEstimator::publishPose(double time, std::string map_frame_id, uint32_t seq) {
-    cheetah_inekf_lcm::pose_t pose;
-    pose.seq = seq;
-    pose.stamp = time;
-    pose.frame_id = map_frame_id;
+// void BodyEstimator::publishPose(double time, std::string map_frame_id, uint32_t seq) {
+//     // cheetah_inekf_lcm::pose_t pose;
+//     pose.seq = seq;
+//     pose.stamp = time;
+//     pose.frame_id = map_frame_id;
 
-    // Get inekf pose estimate
-    inekf::RobotState estimate = filter_.getState();
-    Eigen::Vector3d p = estimate.getPosition();
+//     // Get inekf pose estimate
+//     inekf::RobotState estimate = filter_.getState();
+//     Eigen::Vector3d p = estimate.getPosition();
 
-    // Publish pose in LCM
-    // std::cout << "Issue before read " << std::endl;
-    pose.body[0] = p(0); pose.body[1] = p(1); pose.body[2] = p(2);
-    lcm_->publish(LCM_POSE_CHANNEL, &pose);
-}
+//     // Publish pose in LCM
+//     // std::cout << "Issue before read " << std::endl;
+//     pose.body[0] = p(0); pose.body[1] = p(1); pose.body[2] = p(2);
+//     // lcm_->publish(LCM_POSE_CHANNEL, &pose);
+// }
 
 void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
     if (!static_bias_initialization_) {
@@ -125,16 +128,16 @@ void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
     // Initialize bias based on imu orientation and static assumption
     if (bias_init_vec_.size() < 250) {
         Eigen::Vector3d w, a;
-        w << imu_packet_in.get()->angular_velocity.x, 
-             imu_packet_in.get()->angular_velocity.y, 
-             imu_packet_in.get()->angular_velocity.z;
-        a << imu_packet_in.get()->linear_acceleration.x,
-             imu_packet_in.get()->linear_acceleration.y,
-             imu_packet_in.get()->linear_acceleration.z;
-        Eigen::Quaternion<double> quat(imu_packet_in.get()->orientation.w, 
-                                       imu_packet_in.get()->orientation.x,
-                                       imu_packet_in.get()->orientation.y,
-                                       imu_packet_in.get()->orientation.z); 
+        w << imu_packet_in.angular_velocity.x, 
+             imu_packet_in.angular_velocity.y, 
+             imu_packet_in.angular_velocity.z;
+        a << imu_packet_in.linear_acceleration.x,
+             imu_packet_in.linear_acceleration.y,
+             imu_packet_in.linear_acceleration.z;
+        Eigen::Quaternion<double> quat(imu_packet_in.orientation.w, 
+                                       imu_packet_in.orientation.x,
+                                       imu_packet_in.orientation.y,
+                                       imu_packet_in.orientation.z); 
         Eigen::Matrix3d R = quat.toRotationMatrix();
         Eigen::Vector3d g; g << 0,0,-9.81;
         a = (R.transpose()*(R*a + g)).eval();
@@ -156,17 +159,22 @@ void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
 }
 
 void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in, 
-                        const JointStateMeasurement& joint_state_packet_in, const HuskyState& state) {
+                        const JointStateMeasurement& joint_state_packet_in, HuskyState& state) {
     // Clear filter
     filter_.clear();
 
     // Initialize state mean
-    Eigen::Quaternion<double> quat(cheetah_data.imu.get()->orientation.w, 
-                                   cheetah_data.imu.get()->orientation.x,
-                                   cheetah_data.imu.get()->orientation.y,
-                                   cheetah_data.imu.get()->orientation.z); 
+    Eigen::Quaternion<double> quat(imu_packet_in.orientation.w, 
+                                   imu_packet_in.orientation.x,
+                                   imu_packet_in.orientation.y,
+                                   imu_packet_in.orientation.z); 
     Eigen::Matrix3d R0 = quat.toRotationMatrix(); // Initialize based on VectorNav estimate
-    Eigen::Vector3d v0 = R0*state.getKinematicVelocity(); // initial velocity
+
+
+    Eigen::Vector3d v0_body;
+    v0_body << joint_state_packet_in.getBodyLinearVelocity(), 0 , 0;
+    Eigen::Vector3d v0 = R0*v0_body; // initial velocity
+
     // Eigen::Vector3d v0 = {0.0,0.0,0.0};
     Eigen::Vector3d p0 = {0.0, 0.0, 0.0}; // initial position, we set imu frame as world frame
 
@@ -192,13 +200,13 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
     std::cout << filter_.getState().getP() << std::endl;
 
     // Set enabled flag
-    t_prev_ = imu_packet_in.;
-    imu_prev_ << cheetah_data.imu.get()->angular_velocity.x, 
-                cheetah_data.imu.get()->angular_velocity.y, 
-                cheetah_data.imu.get()->angular_velocity.z;
-                cheetah_data.imu.get()->linear_acceleration.x,
-                cheetah_data.imu.get()->linear_acceleration.y,
-                cheetah_data.imu.get()->linear_acceleration.z;;
+    t_prev_ = imu_packet_in.getTime();
+    imu_prev_ << imu_packet_in.angular_velocity.x, 
+                imu_packet_in.angular_velocity.y, 
+                imu_packet_in.angular_velocity.z;
+                imu_packet_in.linear_acceleration.x,
+                imu_packet_in.linear_acceleration.y,
+                imu_packet_in.linear_acceleration.z;;
     enabled_ = true;
 }
 
