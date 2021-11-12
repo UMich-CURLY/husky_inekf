@@ -28,7 +28,7 @@ class HuskyState {
 
         template <typename T>
         void setImu(
-            const std::shared_ptr<husky_inekf::ImuMeasurement<T>> next_imu) {
+            const std::shared_ptr<husky_inekf::ImuMeasurement<T>>& next_imu) {
 
             const auto imu_data = next_imu;
             
@@ -43,7 +43,7 @@ class HuskyState {
 
             return;
         }
-        
+
         void setJointState(
             const std::shared_ptr<husky_inekf::JointStateMeasurement> 
             next_joint_state);

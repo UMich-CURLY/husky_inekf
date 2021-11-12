@@ -92,7 +92,7 @@ bool HuskySystem::updateNextIMU() {
         imu_packet_ = husky_data_buffer_->imu_q.front();
         husky_data_buffer_->imu_q.pop();
 
-        // Update Husky State TODO: change set function to copy by referenceS
+        // Update Husky State
         state_.setImu(imu_packet_);
 
         return true;

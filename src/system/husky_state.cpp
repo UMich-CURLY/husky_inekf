@@ -11,10 +11,9 @@ void HuskyState::setJointState(
     const std::shared_ptr<husky_inekf::JointStateMeasurement> next_joint_state) {
 
     const auto joint_state_data = next_joint_state;
-    // Set body velocity and angular velocity
-    // TODO: save angular velocity in SENSOR FRAME
-    // SAVE JOINT position to q_
-    dq_.block<3,1>(0,0) = joint_state_data.get()->getJointVelocity();   // body velocity
+    // Set wheel velocity and position in sensor frame
+    q_.block<3, 1>(0,0) = joint_state_data.get()->getJointPosition();   // wheel position
+    dq_.block<3,1>(0,0) = joint_state_data.get()->getJointVelocity();   // wheel velocity
 
     return;
 }
@@ -85,6 +84,7 @@ double HuskyState::z() const { return q_(2); }
 double HuskyState::yaw() const { return q_(3); }
 double HuskyState::pitch() const { return q_(4); }
 double HuskyState::roll() const { return q_(5); }
+// Unused currently
 double HuskyState::leftFrontMotor() const { return q_(6); }
 double HuskyState::rightFrontMotor() const { return q_(7); }
 double HuskyState::leftHindMotor() const { return q_(8); }
@@ -97,6 +97,7 @@ double HuskyState::dz() const { return dq_(2); }
 double HuskyState::dyaw() const { return dq_(3); }
 double HuskyState::dpitch() const { return dq_(4); }
 double HuskyState::droll() const { return dq_(5); }
+// Unused currently
 double HuskyState::dleftFrontMotor() const { return dq_(6); }
 double HuskyState::drightFrontMotor() const { return dq_(7); }
 double HuskyState::dleftHindMotor() const { return dq_(8); }
