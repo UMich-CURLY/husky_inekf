@@ -23,10 +23,13 @@ namespace husky_inekf {
                                     unsigned int ENCODER_DIM): 
                                     encoder_dim_(encoder_dim_) {
                 type_ = JOINT_STATE;
-                joint_position_.resize(encoder_dim_);
-                joint_velocity_.resize(encoder_dim_);
-                joint_effort_.resize(encoder_dim_);
-                linear_velocity_.resize(encoder_dim_);
+                joint_position_.resize(encoder_dim_, 1);
+                joint_velocity_.resize(encoder_dim_, 1);
+                joint_effort_.resize(encoder_dim_, 1);
+                linear_velocity_.resize(encoder_dim_, 1);
+                // TODO: Make this initialization more flexible if necessary
+                body_lin_vel_.resize(3, 1);
+                body_ang_vel_.resize(3, 1);
 
                 // Initialize Robot State
                 setJointPosition(joint_msg.position);
@@ -61,10 +64,13 @@ namespace husky_inekf {
             }
 
             void setBodyVelocity() {
+                body_lin_vel_.setZero();
+                body_ang_vel_.setZero();
+
                 double vr = (linear_velocity_(1) + linear_velocity_(3)) / 2.0;
                 double vl = (linear_velocity_(0) + linear_velocity_(2)) / 2.0;
-                body_lin_vel_ = (vr + vl) / 2.0;
-                body_ang_vel_ = (vr - vl) / vehicle_track_width_;
+                body_lin_vel_(0) = (vr + vl) / 2.0; // [x y z]
+                body_ang_vel_(2) = (vr - vl) / vehicle_track_width_; // [dx dy dz]
             }
 
             inline const Eigen::VectorXd& getJointPosition() const {
@@ -83,11 +89,11 @@ namespace husky_inekf {
                 return linear_velocity_;
             }
 
-            inline double getBodyLinearVelocity() const {
+            inline const Eigen::VectorXd&  getBodyLinearVelocity() const {
                 return body_lin_vel_;
             }
 
-            inline double getBodyAngularVelocity() const {
+            inline const Eigen::VectorXd&  getBodyAngularVelocity() const {
                 return body_ang_vel_;
             }
     
@@ -114,8 +120,8 @@ namespace husky_inekf {
             // body_lin_vel = (v_r + v_l) / 2
             // body_ang_vel = (v_r-v_l)/w
             // w = 0.555 m
-            double body_lin_vel_;
-            double body_ang_vel_;
+            Eigen::VectorXd body_lin_vel_;
+            Eigen::VectorXd body_ang_vel_;
     };
 
     typedef std::shared_ptr<JointStateMeasurement> JointStateMeasurementPtr;

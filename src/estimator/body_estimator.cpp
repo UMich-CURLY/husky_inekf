@@ -93,8 +93,7 @@ void BodyEstimator::propagateIMU(const ImuMeasurement<double>& imu_packet_in, Hu
 // correctvelocity 
 void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_packet_in, HuskyState& state){
 
-    Eigen::Vector3d measured_velocity = Eigen::Vector3d::Zero();
-    measured_velocity(0,0) = joint_state_packet_in.getBodyLinearVelocity();
+    Eigen::Vector3d measured_velocity = joint_state_packet_in.getBodyLinearVelocity();
     filter_.CorrectVelocity(measured_velocity, velocity_cov_);
 }
 
@@ -150,8 +149,7 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
     Eigen::Matrix3d R0 = quat.toRotationMatrix(); // Initialize based on VectorNav estimate
 
 
-    Eigen::Vector3d v0_body;
-    v0_body << joint_state_packet_in.getBodyLinearVelocity(), 0 , 0;
+    Eigen::Vector3d v0_body = joint_state_packet_in.getBodyLinearVelocity();
     Eigen::Vector3d v0 = R0*v0_body; // initial velocity
 
     // Eigen::Vector3d v0 = {0.0,0.0,0.0};

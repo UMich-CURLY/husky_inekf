@@ -30,5 +30,5 @@ void HuskyComms::jointStateCallback(const sensor_msgs::JointState& joint_msg)
         std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4);
 
     std::lock_guard<std::mutex> lock(husky_data_buffer_->joint_state_mutex);
-    husky_data_buffer_->joint_state_q.push(joint_ptr);
+    husky_data_buffer_->joint_state_q.push_back(joint_ptr);
 }

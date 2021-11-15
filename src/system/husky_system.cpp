@@ -90,6 +90,10 @@ bool HuskySystem::updateNextIMU() {
     if (!husky_data_buffer_->imu_q.empty()) {
         imu_packet_ = husky_data_buffer_->imu_q.front();
         husky_data_buffer_->imu_q.pop();
+
+        // Update Husky State
+        state_.setImu(imu_packet_);
+
         return true;
     }
     return false;
@@ -99,8 +103,13 @@ bool HuskySystem::updateNextJointState() {
     husky_data_buffer_->joint_state_mutex.lock();
     
     if (!husky_data_buffer_->joint_state_q.empty()) {
-        joint_state_packet_ = husky_data_buffer_->joint_state_q.front();
-        husky_data_buffer_->joint_state_q.pop();
+        joint_state_packet_ = husky_data_buffer_->joint_state_q.back();
+        // drop everything older than the top measurement on the stack 
+        husky_data_buffer_->joint_state_q.clear();
+
+        // Update Husky State
+        state_.setJointState(joint_state_packet_);
+
         return true;
     }
     return false;

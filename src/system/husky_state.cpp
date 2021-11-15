@@ -7,38 +7,16 @@ HuskyState::HuskyState() {
     this->clear();
 }
 
-// Constructor from cassie_out_t
-// HuskyState::HuskyState(const cheetah_lcm_packet_t& cheetah_data) {
-//     this->set(cheetah_data);
-// }
+void HuskyState::setJointState(
+    const std::shared_ptr<husky_inekf::JointStateMeasurement> next_joint_state) {
 
-// Set q and dq from cheetah_lcm_data_t
-// void HuskyState::set(const cheetah_lcm_packet_t& cheetah_data) { 
+    const auto joint_state_data = next_joint_state;
+    // Set wheel velocity and position in sensor frame
+    q_.block<3, 1>(0,0) = joint_state_data.get()->getJointPosition();   // wheel position
+    dq_.block<3,1>(0,0) = joint_state_data.get()->getJointVelocity();   // wheel velocity
 
-//     const std::shared_ptr<cheetah_inekf_lcm::ImuMeasurement<double>> imu_data = cheetah_data.imu;
-    
-//     // Set orientation
-//     Eigen::Quaternion<double> quat(imu_data.get()->orientation.w, 
-//                             imu_data.get()->orientation.x,
-//                             imu_data.get()->orientation.y,
-//                             imu_data.get()->orientation.z); 
-//     Eigen::Vector3d euler = Rotation2Euler(quat.toRotationMatrix()); // Eigen's eulerAngles function caused discontinuities in signal  
-//     q_.block<3,1>(3,0) = euler;
-
-//     // Set orientation rates
-//     Eigen::Vector3d angularVelocity, eulerRates;
-//     angularVelocity << imu_data.get()->angular_velocity.x, imu_data.get()->angular_velocity.y, imu_data.get()->angular_velocity.z;
-//     eulerRates = AngularVelocity2EulerRates(euler, angularVelocity);
-//     dq_.block<3,1>(3,0) = eulerRates;
-
-//     const std::shared_ptr<cheetah_inekf_lcm::JointStateMeasurement> joint_state_data = cheetah_data.joint_state;
-//     // Set encoders position & rates:
-//     q_.block<12,1>(6,0) = joint_state_data.get()->joint_position;
-//     dq_.block<12,1>(6,0) = joint_state_data.get()->joint_velocity;
-
-
-//     return;
-// }
+    return;
+}
 
 
 // Set q and dq to 0
@@ -73,11 +51,11 @@ Eigen::Vector3d HuskyState::getAngularVelocity() const {
 
 // Extract encoder positions
 Eigen::Matrix<double, 4, 1> HuskyState::getEncoderPositions() const{
-    return q_.segment<4>(6); //<! take 12 elements start from idx = 6
+    return q_.segment<4>(6); //<! take 4 elements start from idx = 6
 }
 
 Eigen::Matrix<double,4,1> HuskyState::getEncoderVelocities() const {
-    return dq_.segment<4>(6); //<! take 12 elements start from idx = 6
+    return dq_.segment<4>(6); //<! take 4 elements start from idx = 6
 }
 
 
@@ -106,6 +84,7 @@ double HuskyState::z() const { return q_(2); }
 double HuskyState::yaw() const { return q_(3); }
 double HuskyState::pitch() const { return q_(4); }
 double HuskyState::roll() const { return q_(5); }
+// Unused currently
 double HuskyState::leftFrontMotor() const { return q_(6); }
 double HuskyState::rightFrontMotor() const { return q_(7); }
 double HuskyState::leftHindMotor() const { return q_(8); }
@@ -118,6 +97,7 @@ double HuskyState::dz() const { return dq_(2); }
 double HuskyState::dyaw() const { return dq_(3); }
 double HuskyState::dpitch() const { return dq_(4); }
 double HuskyState::droll() const { return dq_(5); }
+// Unused currently
 double HuskyState::dleftFrontMotor() const { return dq_(6); }
 double HuskyState::drightFrontMotor() const { return dq_(7); }
 double HuskyState::dleftHindMotor() const { return dq_(8); }
@@ -137,6 +117,7 @@ std::ostream& operator<<(std::ostream& os, const  HuskyState& obj) {
         os << obj.dq_(i) << ", ";
     } 
     os << obj.dq_(obj.dq_.rows()-1) << "]";
+    return os;
 }
 
 } // end namespace husky_inekf
