@@ -6,7 +6,7 @@ PosePublisherNode::PosePublisherNode(ros::NodeHandle* n) : n_(n) {
     // std::string pose_csv_file, init_rot_file;
     std::string pose_topic, pose_frame;
 
-    nh.param<std::string>("pose_topic", pose_topic, "/cheetah/inekf_estimation/pose");
+    nh.param<std::string>("pose_topic", pose_topic, "/husky/inekf_estimation/pose");
     nh.param<std::string>("pose_frame", pose_frame, "/odom");
     nh.param<double>("publish_rate", publish_rate_, 1000); 
     nh.param<int>("pose_skip", pose_skip_, 0); 

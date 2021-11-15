@@ -1,5 +1,5 @@
-#ifndef CHEETAHSYSTEM_H
-#define CHEETAHSYSTEM_H
+#ifndef HUSKYSYSTEM_H
+#define HUSKYSYSTEM_H
 
 #include <Eigen/Dense>
 #include <iostream>
@@ -48,8 +48,8 @@ class HuskySystem {
         // Invariant extended Kalman filter for estimating the robot's body state
         husky_inekf::BodyEstimator estimator_;
         // Most recent data packet
-        std::shared_ptr<husky_inekf::JointStateMeasurement> joint_state_packet_;
-        std::shared_ptr<husky_inekf::ImuMeasurement<double>> imu_packet_;
+        husky_inekf::JointStateMeasurementPtr joint_state_packet_;
+        husky_inekf::ImuMeasurementPtr imu_packet_;
 
         // Update most recent packet to use
         bool updateNextIMU();
@@ -64,4 +64,4 @@ class HuskySystem {
         bool enable_pose_publisher_;
 };
 
-#endif // CHEETAHSYSTEM_H
+#endif // HUSKYSYSTEM_H

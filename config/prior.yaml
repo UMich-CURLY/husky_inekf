@@ -1,0 +1,11 @@
+prior:
+  base_orientation: [1,0,0,0]
+  base_velocity: [0,0,0]
+  base_position: [0,0,0]
+  gyroscope_bias: [0,0,0]
+  accelerometer_bias: [0,0,0]
+  base_orientation_std: 0.1
+  base_velocity_std: 0.1
+  base_position_std: 0.001
+  gyroscope_bias_std: 0.0001
+  accelerometer_bias_std: 0.0001

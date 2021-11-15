@@ -27,8 +27,8 @@ class PathPublisherNode {
             // Create private node handle
             ros::NodeHandle nh("~");
             std::string pose_topic, path_topic;
-            nh.param<std::string>("pose_topic", pose_topic, "/cheetah/inekf_estimation/pose");
-            nh.param<std::string>("path_topic", path_topic, "/cheetah/inekf_estimation/path");
+            nh.param<std::string>("pose_topic", pose_topic, "/husky/inekf_estimation/pose");
+            nh.param<std::string>("path_topic", path_topic, "/husky/inekf_estimation/path");
             nh.param<double>("publish_rate", publish_rate_, 1); 
             nh.param<int>("pose_skip", pose_skip_, 1); 
 

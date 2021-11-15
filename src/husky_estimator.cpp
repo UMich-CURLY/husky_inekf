@@ -46,19 +46,19 @@ int main(int argc, char **argv)
 
     HuskyComms husky_comms(nh, &husky_data_buffer);
 
-    // Initialize CheetahSystem
+    // Initialize HuskySystem
     HuskySystem *system = new HuskySystem(&nh, &husky_data_buffer);
     // system->setEstimator(std::make_shared<BodyEstimator>());
 
     // // //TODO: Listen/Respond Loop
     // bool received_data = true;
-    // while (lcm.handle() == 0 && ros::ok())
-    // {
-    //     system->step();
-    //     /// TODO: publish to ros
+    while (ros::ok())
+    {
+        system->step();
+        /// TODO: publish to ros
 
-    //     ros::spinOnce();
-    // }
+        ros::spinOnce();
+    }
 
     return 0;
 }

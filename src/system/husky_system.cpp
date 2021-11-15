@@ -84,7 +84,6 @@ void HuskySystem::poseCallback(const husky_inekf::HuskyState& state_) {
 }
 
 // Private Functions
-
 bool HuskySystem::updateNextIMU() {
     husky_data_buffer_->imu_mutex.lock();
 

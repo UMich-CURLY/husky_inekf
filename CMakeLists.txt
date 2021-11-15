@@ -102,3 +102,10 @@ target_link_libraries(husky_estimator
     body_estimator
     pose_publisher_node
 )
+
+
+add_executable(path_publisher_node "${PROJECT_SOURCE_DIR}/src/communication/path_publisher_node.cpp")
+target_link_libraries(path_publisher_node
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES}
+)

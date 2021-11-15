@@ -1,6 +1,6 @@
 #pragma once
-#ifndef CHEETAHSTATE_H
-#define CHEETAHSTATE_H
+#ifndef HUSKYSTATE_H
+#define HUSKYSTATE_H
 
 //C Libraries
 #include <stdint.h>
@@ -24,11 +24,6 @@ class HuskyState {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         HuskyState();
-//          HuskyState(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
-        // HuskyState(const cheetah_lcm_packet_t& cheetah_data);
-
-//         void set(const Eigen::Matrix<double,18,1>& q, const Eigen::Matrix<double,18,1>& dq, bool computeContacts = true);
-        // void set(const cheetah_lcm_packet_t& cheetah_data);
         void setBaseRotation(const Eigen::Matrix3d& R);
         void setBasePosition(const Eigen::Vector3d& p);
         void setBaseVelocity(const Eigen::Vector3d& v);

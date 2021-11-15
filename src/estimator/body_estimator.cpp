@@ -9,10 +9,6 @@ BodyEstimator::BodyEstimator() :
     ros::NodeHandle nh("~");
     // Set debug output
     nh.param<bool>("/settings/estimator_enable_debug", estimator_debug_enabled_, false);
-    // Enable visualization publisher if requested
-    nh.param<std::string>("/settings/estimator_lcm_pose_channel", LCM_POSE_CHANNEL, "CHEETAH_POSE_CHANNEL");
-    nh.param<bool>("/settings/estimator_publish_visualization_markers", 
-        lcm_publish_visualization_markers_, false);
     // Settings
     nh.param<bool>("/settings/estimator_static_bias_initialization", static_bias_initialization_, false);
 
@@ -102,23 +98,6 @@ void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_pac
     filter_.CorrectVelocity(measured_velocity, velocity_cov_);
 }
 
-
-// Publish current pose over lcm & and save to ros
-// void BodyEstimator::publishPose(double time, std::string map_frame_id, uint32_t seq) {
-//     // cheetah_inekf_lcm::pose_t pose;
-//     pose.seq = seq;
-//     pose.stamp = time;
-//     pose.frame_id = map_frame_id;
-
-//     // Get inekf pose estimate
-//     inekf::RobotState estimate = filter_.getState();
-//     Eigen::Vector3d p = estimate.getPosition();
-
-//     // Publish pose in LCM
-//     // std::cout << "Issue before read " << std::endl;
-//     pose.body[0] = p(0); pose.body[1] = p(1); pose.body[2] = p(2);
-//     // lcm_->publish(LCM_POSE_CHANNEL, &pose);
-// }
 
 void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
     if (!static_bias_initialization_) {
