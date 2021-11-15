@@ -5,8 +5,8 @@
 
     <!-- if debug -->
 
-    <node name="husky_inekf" pkg="husky_inekf" type="husky_estimator" output="screen" required="true" launch-prefix="gdb -ex run args"/>
-    <!-- <node name="husky_inekf" pkg="husky_inekf" type="husky_estimator" output="screen" required="true"/> -->
+    <!-- <node name="husky_inekf" pkg="husky_inekf" type="husky_estimator" output="screen" required="true" launch-prefix="gdb -ex run args"/> -->
+    <node name="husky_inekf" pkg="husky_inekf" type="husky_estimator" output="screen" required="true"/>
 
 
     <!-- Run husky estimator publisher -->

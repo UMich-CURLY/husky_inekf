@@ -27,12 +27,12 @@ class PathPublisherNode {
             // Create private node handle
             ros::NodeHandle nh("~");
             std::string pose_topic, path_topic;
-            nh.param<std::string>("pose_topic", pose_topic, "/husky/inekf_estimation/pose");
-            nh.param<std::string>("path_topic", path_topic, "/husky/inekf_estimation/path");
-            nh.param<double>("publish_rate", publish_rate_, 1); 
-            nh.param<int>("pose_skip", pose_skip_, 1); 
+            nh.param<std::string>("/settings/pose_topic", pose_topic, "/husky/inekf_estimation/pose");
+            nh.param<std::string>("/settings/path_topic", path_topic, "/husky/inekf_estimation/path");
+            nh.param<double>("/settings/publish_rate", publish_rate_, 1); 
+            nh.param<int>("/settings/pose_skip", pose_skip_, 1); 
 
-            // std::cout<<"pose_topic: "<<pose_topic<<", path_topic: "<<path_topic<<std::endl;
+            std::cout<<"pose_topic: "<<pose_topic<<", path_topic: "<<path_topic<<std::endl;
 
             // Find pose frame from first message
             geometry_msgs::PoseWithCovarianceStampedConstPtr pose_msg = 

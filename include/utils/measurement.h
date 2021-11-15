@@ -36,7 +36,7 @@ class Measurement {
 
         MeasurementHeader(const std_msgs::Header& header) {
             seq = (uint64_t) header.seq;
-            stamp = header.stamp.sec + header.stamp.nsec / 1000000000;
+            stamp = header.stamp.sec + header.stamp.nsec / 1000000000.0;
             frame_id = header.frame_id;
         }
     };

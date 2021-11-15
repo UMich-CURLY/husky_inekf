@@ -52,13 +52,18 @@ void BodyEstimator::propagateIMU(const ImuMeasurement<double>& imu_packet_in, Hu
            imu_packet_in.linear_acceleration.y , 
            imu_packet_in.linear_acceleration.z;
     double t = imu_packet_in.getTime();
-
+    // std::cout<<"imu value: "<< imu<<std::endl;
     // Propagate state based on IMU and contact data
     double dt = t - t_prev_;
     if(estimator_debug_enabled_){
         ROS_INFO("Tprev %0.6lf T %0.6lf dt %0.6lf \n", t_prev_, t, dt);
     }
     
+    // std::cout<<std::setprecision(12)<<std::endl;
+    // std::cout<<"t: "<<t<<std::endl;
+    // std::cout<<"t_prev: "<<t_prev_<<std::endl;
+    // std::cout<<"dt: "<<dt<<std::endl;
+    // std::cout<<"============="<<std::endl;
     if (dt > 0)
         filter_.Propagate(imu_prev_, dt); 
 
@@ -66,11 +71,9 @@ void BodyEstimator::propagateIMU(const ImuMeasurement<double>& imu_packet_in, Hu
 
     ///TODO: Check if imu strapdown model is correct
     inekf::RobotState estimate = filter_.getState();
-    Eigen::Vector3d i_p_ib; i_p_ib << 0, 0, 0;
-    Eigen::Vector3d w = imu.head<3>() - estimate.getGyroscopeBias(); // Angular velocity without bias
-    Eigen::Matrix3d R = estimate.getRotation(); // no extra rotation needed
-    Eigen::Vector3d p = estimate.getPosition() + R*i_p_ib;
-    Eigen::Vector3d v = estimate.getVelocity() + R*inekf::skew(w)*i_p_ib;
+    Eigen::Matrix3d R = estimate.getRotation();
+    Eigen::Vector3d p = estimate.getPosition();
+    Eigen::Vector3d v = estimate.getVelocity();
     state.setBaseRotation(R);
     state.setBasePosition(p);
     state.setBaseVelocity(v); 
@@ -95,12 +98,23 @@ void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_pac
 
     Eigen::Vector3d measured_velocity = joint_state_packet_in.getBodyLinearVelocity();
     filter_.CorrectVelocity(measured_velocity, velocity_cov_);
+
+    double t = joint_state_packet_in.getTime();
+    inekf::RobotState estimate = filter_.getState();
+    Eigen::Matrix3d R = estimate.getRotation(); 
+    Eigen::Vector3d p = estimate.getPosition();
+    Eigen::Vector3d v = estimate.getVelocity();
+    state.setBaseRotation(R);
+    state.setBasePosition(p);
+    state.setBaseVelocity(v); 
+    state.setTime(t);
 }
 
 
 void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
     if (!static_bias_initialization_) {
         bias_initialized_ = true;
+        std::cout<<"Bias inialization is set to false. Skipping bias initialization..."<<std::endl;
         return;
     }
     // Initialize bias based on imu orientation and static assumption

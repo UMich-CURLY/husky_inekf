@@ -7,7 +7,7 @@
 #include "utils/husky_data.hpp"
 #include "utils/imu.hpp"
 #include "utils/joint_state.hpp"
-
+#include <thread>
 #include <string>
 
 
@@ -19,9 +19,13 @@ class HuskyComms {
         void imuCallback(const sensor_msgs::Imu& imu_msg);
         void jointStateCallback(const sensor_msgs::JointState& joint_msg);
         
+        void sub();
+
         ros::NodeHandle nh_;
         ros::Subscriber imu_sub_;
         ros::Subscriber joint_sub_;
+
+        std::thread subscribing_thread_;
 
         husky_inekf::husky_data_t* husky_data_buffer_;
 };

@@ -49,8 +49,6 @@ void HuskySystem::step() {
     }
     // initialization
     else{
-
-        std::cout << "Initialized initState" << std::endl;
         if (estimator_.biasInitialized()) {
             // wait until we receive imu msg
             while(!updateNextIMU()){};
@@ -59,6 +57,7 @@ void HuskySystem::step() {
             
             estimator_.initState(*(imu_packet_.get()), *(joint_state_packet_.get()), state_);
             estimator_.enableFilter();
+            std::cout<<"State initialized."<<std::endl;
         } else {
             
             while(!updateNextIMU()){};
@@ -85,23 +84,25 @@ void HuskySystem::poseCallback(const husky_inekf::HuskyState& state_) {
 
 // Private Functions
 bool HuskySystem::updateNextIMU() {
-    husky_data_buffer_->imu_mutex.lock();
-
+    // husky_data_buffer_->imu_mutex.lock();
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->imu_mutex);
     if (!husky_data_buffer_->imu_q.empty()) {
         imu_packet_ = husky_data_buffer_->imu_q.front();
         husky_data_buffer_->imu_q.pop();
-
+        // husky_data_buffer_->imu_mutex.unlock();
         // Update Husky State
         state_.setImu(imu_packet_);
 
         return true;
     }
+
+    // husky_data_buffer_->imu_mutex.unlock();
     return false;
 }
 
 bool HuskySystem::updateNextJointState() {
-    husky_data_buffer_->joint_state_mutex.lock();
-    
+    // husky_data_buffer_->joint_state_mutex.lock();
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->joint_state_mutex);
     if (!husky_data_buffer_->joint_state_q.empty()) {
         joint_state_packet_ = husky_data_buffer_->joint_state_q.back();
         // drop everything older than the top measurement on the stack 

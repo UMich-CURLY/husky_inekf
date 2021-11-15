@@ -21,7 +21,7 @@ namespace husky_inekf {
 
             JointStateMeasurement(  const sensor_msgs::JointState& joint_msg,
                                     unsigned int ENCODER_DIM): 
-                                    encoder_dim_(encoder_dim_) {
+                                    encoder_dim_(ENCODER_DIM) {
                 type_ = JOINT_STATE;
                 joint_position_.resize(encoder_dim_, 1);
                 joint_velocity_.resize(encoder_dim_, 1);
@@ -30,7 +30,6 @@ namespace husky_inekf {
                 // TODO: Make this initialization more flexible if necessary
                 body_lin_vel_.resize(3, 1);
                 body_ang_vel_.resize(3, 1);
-
                 // Initialize Robot State
                 setJointPosition(joint_msg.position);
                 setJointVelocity(joint_msg.velocity);
