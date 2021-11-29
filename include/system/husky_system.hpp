@@ -56,14 +56,12 @@ class HuskySystem {
         bool updateNextJointState();
 
         // Publish output path
-        void savePoseTxt(const husky_inekf::HuskyState& state_);
-
+        void poseCallback(const husky_inekf::HuskyState& state_);
         // Output file
         std::string file_name_;
         std::string tum_file_name_;
         // Publish path node enable flag
         bool enable_pose_publisher_;
-        bool enable_log_pose_;
 };
 
 #endif // HUSKYSYSTEM_H

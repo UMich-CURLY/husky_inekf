@@ -23,7 +23,6 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
 
     // Initialize pose publishing if requested
     nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
-    nh_->param<bool>("/settings/system_enable_log_pose_", enable_log_pose_, false);
 
 }
 
@@ -44,12 +43,8 @@ void HuskySystem::step() {
 
         if (enable_pose_publisher_) {
             pose_publisher_node_.posePublish(state_);
-            
+            poseCallback(state_);
         }        
-
-        if (enable_log_pose_){
-            savePoseTxt(state_);
-        }
 
     }
     // initialization
@@ -72,7 +67,7 @@ void HuskySystem::step() {
 
 }
 
-void HuskySystem::savePoseTxt(const husky_inekf::HuskyState& state_) {
+void HuskySystem::poseCallback(const husky_inekf::HuskyState& state_) {
     if (file_name_.size() > 0) {
         // ROS_INFO_STREAM("write new pose\n");
         std::ofstream outfile(file_name_,std::ofstream::out | std::ofstream::app );
