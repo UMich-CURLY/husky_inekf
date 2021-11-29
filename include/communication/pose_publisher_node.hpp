@@ -10,6 +10,7 @@
 #include "system/husky_state.hpp"
 #include <Eigen/Dense>
 #include "geometry_msgs/PoseWithCovarianceStamped.h"
+#include "geometry_msgs/PoseStamped.h"
 #include <nav_msgs/Path.h>
 
 class PosePublisherNode{
@@ -19,12 +20,15 @@ class PosePublisherNode{
 
         // Publishes pose
         void posePublish(const husky_inekf::HuskyState& state_);
+        void pathPublish();
 
     private:
         ros::NodeHandle* n_;
         ros::Publisher pose_pub_;
+        ros::Publisher path_pub_;
         std::string pose_frame_;
-        uint32_t seq_ = 0;
+        uint32_t pose_seq_ = 0;
+        uint32_t path_seq_ = 0;
         double publish_rate_;
         int pose_skip_;
         std::queue<std::array<float,3>> pose_from_csv_;

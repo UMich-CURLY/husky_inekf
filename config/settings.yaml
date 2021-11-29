@@ -21,6 +21,7 @@ settings:
 
   # Husky System
   system_enable_pose_publisher: true
+  system_log_pose_as_txt: true
   system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_kitti.txt"
   system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_tum.txt"
 

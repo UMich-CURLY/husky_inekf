@@ -48,14 +48,11 @@ int main(int argc, char **argv)
 
     // Initialize HuskySystem
     HuskySystem *system = new HuskySystem(&nh, &husky_data_buffer);
-    // system->setEstimator(std::make_shared<BodyEstimator>());
 
-    // // //TODO: Listen/Respond Loop
-    // bool received_data = true;
+
     while (ros::ok())
     {
         system->step();
-        /// TODO: publish to ros
 
         ros::spinOnce();
     }

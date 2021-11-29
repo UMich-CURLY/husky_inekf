@@ -21,13 +21,11 @@ PosePublisherNode::PosePublisherNode(ros::NodeHandle* n) : n_(n) {
 
 PosePublisherNode::~PosePublisherNode() {}
 
-// Publishes pose
+// Publishes pose and path
 void PosePublisherNode::posePublish(const husky_inekf::HuskyState& state_) {
-    // std::array<float,3> cur_pose = pose_from_csv_.front();
-    // pose_from_csv_.pop();
 
     geometry_msgs::PoseWithCovarianceStamped pose_msg;
-    pose_msg.header.seq = seq_;
+    pose_msg.header.seq = pose_seq_;
     pose_msg.header.stamp = ros::Time::now();
     pose_msg.header.frame_id = pose_frame_;
     pose_msg.pose.pose.position.x = state_.x() - first_pose_[0];
@@ -39,7 +37,30 @@ void PosePublisherNode::posePublish(const husky_inekf::HuskyState& state_) {
     pose_msg.pose.pose.orientation.z = state_.getQuaternion().z();
     // std::cout<<"publishing: "<<pose_msg.pose.pose.position.x<<", "<<pose_msg.pose.pose.position.y<<", "<<pose_msg.pose.pose.position.z<<std::endl;
     pose_pub_.publish(pose_msg);
-    seq_++;
+    
+    pose_seq_++;
+    
+    
+    // geometry_msgs::PoseStamped pose_stamped;
+    // pose_stamped.header = pose_msg.header;
+    // pose_stamped.pose = pose_msg.pose.pose;
+    // std::lock_guard<std::mutex> lock(poses_mutex_);
+    // poses_.push_back(pose_stamped);
+}
+
+// Publishes path
+void PosePublisherNode::pathPublish() {
+    std::lock_guard<std::mutex> lock(poses_mutex_);
+
+    nav_msgs::Path path_msg;
+    path_msg.header.seq = path_seq_;
+    path_msg.header.stamp = ros::Time::now();
+    path_msg.header.frame_id = pose_frame_;
+    path_msg.poses = poses_;
+    // std::cout<<"publishing current path: "<<path_msg.poses.back().pose.position.x<<", "<<path_msg.poses.back().pose.position.y<<", "<<path_msg.poses.back().pose.position.z<<std::endl;
+    
+    path_pub_.publish(path_msg);
+    path_seq_++;
 }
 
 

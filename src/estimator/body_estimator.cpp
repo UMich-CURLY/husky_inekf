@@ -52,22 +52,15 @@ void BodyEstimator::propagateIMU(const ImuMeasurement<double>& imu_packet_in, Hu
            imu_packet_in.linear_acceleration.y , 
            imu_packet_in.linear_acceleration.z;
     double t = imu_packet_in.getTime();
-    // std::cout<<"imu value: "<< imu<<std::endl;
+    
     // Propagate state based on IMU and contact data
     double dt = t - t_prev_;
     if(estimator_debug_enabled_){
         ROS_INFO("Tprev %0.6lf T %0.6lf dt %0.6lf \n", t_prev_, t, dt);
     }
     
-    // std::cout<<std::setprecision(12)<<std::endl;
-    // std::cout<<"t: "<<t<<std::endl;
-    // std::cout<<"t_prev: "<<t_prev_<<std::endl;
-    // std::cout<<"dt: "<<dt<<std::endl;
-    // std::cout<<"============="<<std::endl;
     if (dt > 0)
         filter_.Propagate(imu_prev_, dt); 
-
-    // correctKinematics(state);
 
     ///TODO: Check if imu strapdown model is correct
     inekf::RobotState estimate = filter_.getState();
