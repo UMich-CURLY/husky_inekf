@@ -20,6 +20,13 @@ Measurement::Measurement() {
     header.stamp = 0;
     type_ = EMPTY;
 }
+
+void Measurement::setHeader(const std_msgs::Header& header_in){
+          header.seq = (uint64_t) header_in.seq;
+          header.stamp = header_in.stamp.sec + header_in.stamp.nsec / 1000000000.0;
+          header.frame_id = header_in.frame_id;
+};
+
 // Getters
 double Measurement::getTime() const {   
     return header.stamp; 

@@ -34,10 +34,10 @@ class Measurement {
         MeasurementHeader() {
         }
 
-        MeasurementHeader(const std_msgs::Header& header) {
-            seq = (uint64_t) header.seq;
-            stamp = header.stamp.sec + header.stamp.nsec / 1000000000.0;
-            frame_id = header.frame_id;
+        MeasurementHeader(const std_msgs::Header& header_in) {
+            seq = (uint64_t) header_in.seq;
+            stamp = header_in.stamp.sec + header_in.stamp.nsec / 1000000000.0;
+            frame_id = header_in.frame_id;
         }
     };
 
@@ -47,6 +47,8 @@ class Measurement {
         virtual ~Measurement() = default;
 
         MeasurementHeader header;
+        void setHeader(const std_msgs::Header& header_in);
+
 
         double getTime() const;
         MeasurementType getType();

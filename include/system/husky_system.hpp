@@ -29,6 +29,8 @@ class HuskySystem {
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         // Default Contructor
         HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer);
+        ~HuskySystem();
+
         // Step forward one iteration of the system
         void step();
 
@@ -51,17 +53,23 @@ class HuskySystem {
         husky_inekf::JointStateMeasurementPtr joint_state_packet_;
         husky_inekf::ImuMeasurementPtr imu_packet_;
 
+        std::ofstream outfile_;
+        std::ofstream tum_outfile_;
+
         // Update most recent packet to use
         bool updateNextIMU();
         bool updateNextJointState();
 
         // Publish output path
-        void poseCallback(const husky_inekf::HuskyState& state_);
+        void logPoseTxt(const husky_inekf::HuskyState& state_);
         // Output file
         std::string file_name_;
         std::string tum_file_name_;
         // Publish path node enable flag
         bool enable_pose_publisher_;
+        bool enable_pose_logger_;
+        int pose_skip_;
+        int skip_count_;
 };
 
 #endif // HUSKYSYSTEM_H

@@ -59,7 +59,6 @@ std::ostream& operator<<(std::ostream& os, const NoiseParams& p) {
     os << "Accelerometer Covariance:\n" << p.Qa_ << endl;
     os << "Gyroscope Bias Covariance:\n" << p.Qbg_ << endl;
     os << "Accelerometer Bias Covariance:\n" << p.Qba_ << endl;
-    os << "Contact Covariance:\n" << p.Qc_ << endl;
     os << "-----------------------------------" << endl;
     return os;
 }

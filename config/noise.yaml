@@ -3,5 +3,5 @@ noise:
   accelerometer_std: 0.1 #0.0013734
   gyroscope_bias_std: 0.1
   accelerometer_bias_std: 0.1
-  contact_std: 0.1
+  velocity_std: 0.01  # std for wheel velocity
 

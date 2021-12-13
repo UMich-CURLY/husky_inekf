@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0.2)
 project(husky_inekf)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -Wl,--no-as-needed -DBOOST_LOG_DYN_LINK -lboost_log -lpthread") #-DBOOST_LOG_DYN_LINK -lboost_log -lpthread needed for boost::log
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -DNDEBUG -DEIGEN_NO_DEBUG -march=native -Wl,--no-as-needed -DBOOST_LOG_DYN_LINK -lboost_log -lpthread -lboost_timer" ) #-DBOOST_LOG_DYN_LINK -lboost_log -lpthread needed for boost::log
 SET(CMAKE_CXX_COMPILER /usr/bin/g++)
 SET(CMAKE_C_COMPILER /usr/bin/gcc)
 

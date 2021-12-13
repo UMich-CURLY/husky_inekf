@@ -1,6 +1,6 @@
 <launch>
     <arg name="husky_namespace" default="husky" />
-    <param name="use_sim_time" value="false" />
+    <param name="use_sim_time" value="true" />
 
 
     <!-- if debug -->
@@ -23,8 +23,16 @@
       <param name="pose_topic" value="/husky/inekf_estimation/pose"/>
       <param name="path_topic" value="/husky/inekf_estimation/path"/>
       <param name="publish_rate" value="2"/>
-      <param name="pose_skip" value="100"/>
-      <param name="use_sim_time" value="false" />
+      <param name="pose_skip" value="1000"/>
       <!-- <param name="file_name" value="/media/curly_ssd_justin/code/minicheetah-perception/catkin_ws/src/cheetah_inekf_lcm/data/08292020_trail1_gt_2.txt"/> -->
     </node>
+
+
+    
+    <!-- <node type="rviz" name="rviz" pkg="rviz">
+      <param name="use_sim_time" value="true" />
+    </node> -->
+
+
+    <node pkg="tf" type="static_transform_publisher" name="odom_to_map" args="0 0 0 0 0 0  /map /odom 100"/>
 </launch>

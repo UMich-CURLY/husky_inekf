@@ -4,6 +4,7 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/thread/thread.hpp>
 #include <boost/circular_buffer.hpp>
+#include <boost/timer/timer.hpp>
 
 #include <vector>
 #include <numeric>
@@ -16,18 +17,27 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     nh_->param<std::string>("/settings/system_inekf_tum_pose_filename", tum_file_name_, 
         "/media/jetson256g/data/inekf_result/husky_inekf_tum_pose.txt");
 
-    std::ofstream outfile(file_name_);
-    std::ofstream tum_outfile(tum_file_name_);
-    outfile.close();
-    tum_outfile.close();
+    
+    outfile_.open(file_name_,std::ofstream::out);
+    tum_outfile_.open(tum_file_name_, std::ofstream::out);
 
+    outfile_.precision(20);
+    tum_outfile_.precision(20);
     // Initialize pose publishing if requested
     nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
+    nh_->param<bool>("/settings/system_enable_pose_logger", enable_pose_logger_, false);
+    pose_skip_ = 100;
 
+}
+
+HuskySystem::~HuskySystem(){
+    outfile_.close();
+    tum_outfile_.close();
 }
 
 void HuskySystem::step() {
     
+    boost::timer::auto_cpu_timer t;
     // if the estimator is initialized
     if (estimator_.enabled()){
 
@@ -43,8 +53,11 @@ void HuskySystem::step() {
 
         if (enable_pose_publisher_) {
             pose_publisher_node_.posePublish(state_);
-            poseCallback(state_);
         }        
+
+        if (enable_pose_logger_){
+            logPoseTxt(state_);
+        }
 
     }
     // initialization
@@ -67,19 +80,25 @@ void HuskySystem::step() {
 
 }
 
-void HuskySystem::poseCallback(const husky_inekf::HuskyState& state_) {
-    if (file_name_.size() > 0) {
+void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
+    
+    if (skip_count_ == 0) {
         // ROS_INFO_STREAM("write new pose\n");
-        std::ofstream outfile(file_name_,std::ofstream::out | std::ofstream::app );
-        outfile << "1 0 0 "<< state_.x() <<" 0 1 0 "<< state_.y() <<" 0 0 1 "<< state_.z() <<std::endl<<std::flush;
-        outfile.close();
+        // std::ofstream outfile(file_name_,std::ofstream::out | std::ofstream::app );
+        outfile_ << "1 0 0 "<< state_.x() <<" 0 1 0 "<< state_.y() <<" 0 0 1 "<< state_.z() <<std::endl<<std::flush;
+        // outfile.close();
         // tum style
-        std::ofstream tum_outfile(tum_file_name_,std::ofstream::out | std::ofstream::app );
-        tum_outfile << state_.getTime() << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
-        <<" "<< state_.getQuaternion().y() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;
-        
-        tum_outfile.close();
+        // std::ofstream tum_outfile(tum_file_name_,std::ofstream::out | std::ofstream::app );
+        tum_outfile_ << state_.getTime() << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
+        <<" "<< state_.getQuaternion().y() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;    
+        skip_count_ = pose_skip_;
     }
+    else {
+        skip_count_--;
+    }
+    
+    // tum_outfile.close();
+    
 }
 
 // Private Functions
@@ -87,6 +106,11 @@ bool HuskySystem::updateNextIMU() {
     // husky_data_buffer_->imu_mutex.lock();
     std::lock_guard<std::mutex> lock(husky_data_buffer_->imu_mutex);
     if (!husky_data_buffer_->imu_q.empty()) {
+
+        if(husky_data_buffer_->imu_q.size()>1){
+            ROS_INFO_STREAM("Filter not running in real-time!");
+            ROS_INFO_STREAM("IMU queue size: " <<  husky_data_buffer_->imu_q.size());
+        }
         imu_packet_ = husky_data_buffer_->imu_q.front();
         husky_data_buffer_->imu_q.pop();
         // husky_data_buffer_->imu_mutex.unlock();
@@ -104,6 +128,12 @@ bool HuskySystem::updateNextJointState() {
     // husky_data_buffer_->joint_state_mutex.lock();
     std::lock_guard<std::mutex> lock(husky_data_buffer_->joint_state_mutex);
     if (!husky_data_buffer_->joint_state_q.empty()) {
+
+        if(husky_data_buffer_->joint_state_q.size()>1){
+            ROS_INFO_STREAM("Filter not running in real-time!");
+            ROS_INFO_STREAM("Joint state queue size: " <<  husky_data_buffer_->joint_state_q.size());
+        }
+
         joint_state_packet_ = husky_data_buffer_->joint_state_q.back();
         // drop everything older than the top measurement on the stack 
         husky_data_buffer_->joint_state_q.clear();

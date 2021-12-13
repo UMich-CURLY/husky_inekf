@@ -60,7 +60,7 @@ namespace husky_inekf {
                     imu_msg.linear_acceleration.z
                 };
 
-                header = MeasurementHeader(imu_msg.header);
+                setHeader(imu_msg.header);
 
                 type_ = IMU;
             }

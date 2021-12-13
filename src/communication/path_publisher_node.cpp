@@ -29,10 +29,11 @@ class PathPublisherNode {
             std::string pose_topic, path_topic;
             nh.param<std::string>("/settings/pose_topic", pose_topic, "/husky/inekf_estimation/pose");
             nh.param<std::string>("/settings/path_topic", path_topic, "/husky/inekf_estimation/path");
-            nh.param<double>("/settings/publish_rate", publish_rate_, 1); 
-            nh.param<int>("/settings/pose_skip", pose_skip_, 1); 
+            nh.param<double>("/settings/publish_rate", publish_rate_, 1000); 
+            nh.param<int>("/settings/pose_skip", pose_skip_, 100); 
 
             std::cout<<"pose_topic: "<<pose_topic<<", path_topic: "<<path_topic<<std::endl;
+            std::cout<<"path publish rate: "<<publish_rate_<<std::endl;
 
             // Find pose frame from first message
             geometry_msgs::PoseWithCovarianceStampedConstPtr pose_msg = 
@@ -69,7 +70,8 @@ class PathPublisherNode {
 
         // Pose message callback
         void poseCallback(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg){
-            // if ((int)msg->header.seq%pose_skip_!=0) { return; }
+
+            if ((int)msg->header.seq%pose_skip_!=0) { return; }
             geometry_msgs::PoseStamped pose;
             pose.header = msg->header;
             pose.pose = msg->pose.pose;

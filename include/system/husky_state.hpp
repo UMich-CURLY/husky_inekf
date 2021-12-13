@@ -64,10 +64,6 @@ class HuskyState {
 //         Eigen::Matrix<double,10,1> getMotorPositions() const;
 //         Eigen::Matrix<double,10,1> getMotorVelocities() const;
 //         Eigen::Matrix<double,4,1> getGRF() const;
-        bool getLeftFrontContact() const;
-        bool getLeftHindContact() const;
-        bool getRightFrontContact() const;
-        bool getRightHindContact() const;
         Eigen::Vector3d getAngularVelocity() const;
         Eigen::Vector3d getBodyVelocity() const;
         

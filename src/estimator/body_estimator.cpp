@@ -26,10 +26,19 @@ BodyEstimator::BodyEstimator() :
     if (nh.getParam("/noise/accelerometer_bias_std", std)) { 
         params.setAccelerometerBiasNoise(std);
     }
+    if (nh.getParam("/noise/velocity_std", std)) { 
+        velocity_cov_ = std * std * Eigen::Matrix<double,3,3>::Identity();
+    }
+    else{
+        velocity_cov_ = 0.05 * 0.05 * Eigen::Matrix<double,3,3>::Identity();
+    }
+    
     
     filter_.setNoiseParams(params);
     std::cout << "Noise parameters are initialized to: \n";
     std::cout << filter_.getNoiseParams() << std::endl;
+    std::cout << "Velocity covariance is initialzed to: \n";
+    std::cout << velocity_cov_ <<std::endl;
 }
 
 

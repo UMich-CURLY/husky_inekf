@@ -10,10 +10,6 @@ settings:
   flat_ground: false
 
   
-  # LCM handler
-  # lcm_enable_debug_output: false
-  # project_root_dir: "/home/arthuzh/CURLY/catkin_ws/src/cheetah_inekf_lcm"
-  
   # Body Estimator
   estimator_publish_visualization_markers: true
   estimator_enable_debug: false
@@ -21,11 +17,12 @@ settings:
 
   # Husky System
   system_enable_pose_publisher: true
+  system_enable_pose_logger: false
   system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_kitti.txt"
   system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_tum.txt"
 
   # Path Publisher
   pose_topic: "/husky/inekf_estimation/pose"
   path_topic: "/husky/inekf_estimation/path"
-  publish_rate: 1
-  pose_skip: 1
+  publish_rate: 1000
+  pose_skip: 500

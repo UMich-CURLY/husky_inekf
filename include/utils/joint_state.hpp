@@ -36,6 +36,8 @@ namespace husky_inekf {
                 setJointEffort(joint_msg.effort);
                 setLinearVelocity();
                 setBodyVelocity();
+
+                setHeader(joint_msg.header);
             }
 
             void setJointPosition(const std::vector<double>& position) {

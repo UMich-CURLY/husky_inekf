@@ -32,14 +32,9 @@ class BodyEstimator {
         void correctVelocity(const JointStateMeasurement& joint_state_packet_in, HuskyState& state);
         inekf::InEKF getFilter() const;
         inekf::RobotState getState() const;
-        void publishMarkers(double time, std::string map_frame_id, uint32_t seq);
-        void publishPath();
-        // void publishPose(double time, std::string map_frame_id, uint32_t seq);
 
     private:
-        std::string LCM_POSE_CHANNEL;
         // ROS related
-        ros::Publisher visualization_pub_;
         std::vector<geometry_msgs::PoseStamped> poses_;
         // inekf related
         inekf::InEKF filter_;
@@ -47,15 +42,14 @@ class BodyEstimator {
         bool bias_initialized_ = false;
         bool static_bias_initialization_ = false;
         bool estimator_debug_enabled_ = false;
-        bool lcm_publish_visualization_markers_ = false;
         std::vector<Eigen::Matrix<double,6,1>,Eigen::aligned_allocator<Eigen::Matrix<double,6,1>>> bias_init_vec_;
         Eigen::Vector3d bg0_ = Eigen::Vector3d::Zero();
         Eigen::Vector3d ba0_ = Eigen::Vector3d::Zero();
         double t_prev_;
         uint32_t seq_;
         Eigen::Matrix<double,6,1> imu_prev_;
-        const Eigen::Matrix<double,4,4> encoder_cov_ = 0.0174533*0.0174533 * Eigen::Matrix<double,4,4>::Identity(); // 1 deg std dev 
-        const Eigen::Matrix<double,3,3> velocity_cov_ = 0.05 * 0.05 * Eigen::Matrix<double,3,3>::Identity(); // covariance of velocity measuremnts from wheel velocity.
+        // const Eigen::Matrix<double,4,4> encoder_cov_ = 0.0174533*0.0174533 * Eigen::Matrix<double,4,4>::Identity(); // 1 deg std dev 
+        Eigen::Matrix<double,3,3> velocity_cov_; // covariance of velocity measuremnts from wheel velocity.
 };
 
 } // end husky_inekf namespace
