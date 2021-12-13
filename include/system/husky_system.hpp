@@ -68,7 +68,8 @@ class HuskySystem {
         // Publish path node enable flag
         bool enable_pose_publisher_;
         bool enable_pose_logger_;
-        int pose_skip_;
+        bool new_pose_ready_;
+        int log_pose_skip_;
         int skip_count_;
 };
 

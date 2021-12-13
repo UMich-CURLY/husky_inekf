@@ -10,7 +10,7 @@
 #include <numeric>
 
 HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer): 
-    nh_(nh), husky_data_buffer_(husky_data_buffer), pose_publisher_node_(nh) {
+    nh_(nh), husky_data_buffer_(husky_data_buffer), pose_publisher_node_(nh), new_pose_ready_(false) {
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
         "/media/jetson256g/data/inekf_result/husky_inekf_pose.txt");
@@ -26,7 +26,7 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     // Initialize pose publishing if requested
     nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
     nh_->param<bool>("/settings/system_enable_pose_logger", enable_pose_logger_, false);
-    pose_skip_ = 100;
+    nh_->param<int>("/settings/system_log_pose_skip", log_pose_skip_, 100);
 
 }
 
@@ -36,28 +36,32 @@ HuskySystem::~HuskySystem(){
 }
 
 void HuskySystem::step() {
-    
-    boost::timer::auto_cpu_timer t;
+
+    // boost::timer::auto_cpu_timer t;
     // if the estimator is initialized
     if (estimator_.enabled()){
 
         // if IMU measurement exists we do prediction
         if(updateNextIMU()){
             estimator_.propagateIMU(*(imu_packet_.get()),state_);
+            new_pose_ready_ = true;
         }
 
         // if velocity measurement exsits we do correction
         if(updateNextJointState()){
             estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
+            new_pose_ready_ = true;
         }
 
-        if (enable_pose_publisher_) {
+        if (enable_pose_publisher_ && new_pose_ready_) {
             pose_publisher_node_.posePublish(state_);
         }        
 
-        if (enable_pose_logger_){
-            logPoseTxt(state_);
+        if (enable_pose_logger_ && new_pose_ready_){
+                logPoseTxt(state_);
         }
+        
+        new_pose_ready_ = false;
 
     }
     // initialization
@@ -91,7 +95,7 @@ void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
         // std::ofstream tum_outfile(tum_file_name_,std::ofstream::out | std::ofstream::app );
         tum_outfile_ << state_.getTime() << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
         <<" "<< state_.getQuaternion().y() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;    
-        skip_count_ = pose_skip_;
+        skip_count_ = log_pose_skip_;
     }
     else {
         skip_count_--;
@@ -119,7 +123,7 @@ bool HuskySystem::updateNextIMU() {
 
         return true;
     }
-
+    // ROS_INFO_STREAM("!!!imu not received!!!");
     // husky_data_buffer_->imu_mutex.unlock();
     return false;
 }

@@ -18,6 +18,7 @@ settings:
   # Husky System
   system_enable_pose_publisher: true
   system_enable_pose_logger: false
+  system_log_pose_skip: 100
   system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_kitti.txt"
   system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_tum.txt"
 
@@ -25,4 +26,4 @@ settings:
   pose_topic: "/husky/inekf_estimation/pose"
   path_topic: "/husky/inekf_estimation/path"
   publish_rate: 1000
-  pose_skip: 500
+  pose_skip: 10
