@@ -12,6 +12,8 @@ BodyEstimator::BodyEstimator() :
     // Settings
     nh.param<bool>("/settings/estimator_static_bias_initialization", static_bias_initialization_, false);
 
+    nh.param<double>("/settings/estimator_velocity_time_threshold",velocity_t_thres_,0.1);
+
     inekf::NoiseParams params;
     double std;
     if (nh.getParam("/noise/gyroscope_std", std)) { 
@@ -105,18 +107,28 @@ void BodyEstimator::propagateIMU(const ImuMeasurement<double>& imu_packet_in, Hu
 // correctvelocity 
 void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_packet_in, HuskyState& state){
 
-    Eigen::Vector3d measured_velocity = joint_state_packet_in.getBodyLinearVelocity();
-    filter_.CorrectVelocity(measured_velocity, velocity_cov_);
-
     double t = joint_state_packet_in.getTime();
-    inekf::RobotState estimate = filter_.getState();
-    Eigen::Matrix3d R = estimate.getRotation(); 
-    Eigen::Vector3d p = estimate.getPosition();
-    Eigen::Vector3d v = estimate.getVelocity();
-    state.setBaseRotation(R);
-    state.setBasePosition(p);
-    state.setBaseVelocity(v); 
-    state.setTime(t);
+
+    if(std::abs(t-state.getTime())<velocity_t_thres_){
+        Eigen::Vector3d measured_velocity = joint_state_packet_in.getBodyLinearVelocity();
+        filter_.CorrectVelocity(measured_velocity, velocity_cov_);
+
+        
+        inekf::RobotState estimate = filter_.getState();
+        Eigen::Matrix3d R = estimate.getRotation(); 
+        Eigen::Vector3d p = estimate.getPosition();
+        Eigen::Vector3d v = estimate.getVelocity();
+        state.setBaseRotation(R);
+        state.setBasePosition(p);
+        state.setBaseVelocity(v); 
+        state.setTime(t);
+    }
+    else{
+        ROS_INFO("Velocity not updated because huge time different.");
+        std::cout << std::setprecision(20) << "t: " << t << std::endl;
+        std::cout << std::setprecision(20) << "state t: "<< state.getTime() << std::endl;
+        std::cout << std::setprecision(20) << "time diff: " << t-state.getTime() <<std::endl;
+    }
 }
 
 
@@ -169,8 +181,8 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
                                    imu_packet_in.orientation.x,
                                    imu_packet_in.orientation.y,
                                    imu_packet_in.orientation.z); 
-    Eigen::Matrix3d R0 = quat.toRotationMatrix(); // Initialize based on VectorNav estimate
-
+    // Eigen::Matrix3d R0 = quat.toRotationMatrix(); // Initialize based on VectorNav estimate
+    Eigen::Matrix3d R0 = Eigen::Matrix3d::Identity();
 
     Eigen::Vector3d v0_body = joint_state_packet_in.getBodyLinearVelocity();
     Eigen::Vector3d v0 = R0*v0_body; // initial velocity

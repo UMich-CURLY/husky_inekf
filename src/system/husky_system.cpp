@@ -28,6 +28,7 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     nh_->param<bool>("/settings/system_enable_pose_logger", enable_pose_logger_, false);
     nh_->param<int>("/settings/system_log_pose_skip", log_pose_skip_, 100);
 
+    last_imu_time_ = 0;
 }
 
 HuskySystem::~HuskySystem(){
@@ -38,11 +39,14 @@ HuskySystem::~HuskySystem(){
 void HuskySystem::step() {
 
     // boost::timer::auto_cpu_timer t;
+    // boost::timer::cpu_timer timer;
     // if the estimator is initialized
+    
     if (estimator_.enabled()){
 
         // if IMU measurement exists we do prediction
         if(updateNextIMU()){
+            // std::cout<<"propagate time: "<<ros::Time::now()<<std::endl;
             estimator_.propagateIMU(*(imu_packet_.get()),state_);
             new_pose_ready_ = true;
         }
@@ -55,6 +59,9 @@ void HuskySystem::step() {
 
         if (enable_pose_publisher_ && new_pose_ready_) {
             pose_publisher_node_.posePublish(state_);
+            // std::cout << timer.format() << '\n';
+            // std::cout<<"publish pose: "<<ros::Time::now()<<std::endl;
+            // std::cout<<"-------------"<<std::endl;
         }        
 
         if (enable_pose_logger_ && new_pose_ready_){
@@ -74,6 +81,9 @@ void HuskySystem::step() {
             
             estimator_.initState(*(imu_packet_.get()), *(joint_state_packet_.get()), state_);
             estimator_.enableFilter();
+            
+            husky_data_buffer_->joint_state_q = {};
+
             std::cout<<"State initialized."<<std::endl;
         } else {
             
@@ -114,12 +124,18 @@ bool HuskySystem::updateNextIMU() {
         if(husky_data_buffer_->imu_q.size()>1){
             ROS_INFO_STREAM("Filter not running in real-time!");
             ROS_INFO_STREAM("IMU queue size: " <<  husky_data_buffer_->imu_q.size());
+
+            // std::cout<< std::setprecision(20) << husky_data_buffer_->imu_q.front()->getTime()<<std::endl;
+            // std::cout<< std::setprecision(20) << husky_data_buffer_->imu_q.back()->getTime()<<std::endl;
         }
         imu_packet_ = husky_data_buffer_->imu_q.front();
         husky_data_buffer_->imu_q.pop();
         // husky_data_buffer_->imu_mutex.unlock();
         // Update Husky State
         state_.setImu(imu_packet_);
+
+        // std::cout<<"IMU time diff: "<<imu_packet_->getTime() - last_imu_time_<<std::endl;
+        // last_imu_time_ = imu_packet_->getTime();
 
         return true;
     }
@@ -138,9 +154,10 @@ bool HuskySystem::updateNextJointState() {
             ROS_INFO_STREAM("Joint state queue size: " <<  husky_data_buffer_->joint_state_q.size());
         }
 
-        joint_state_packet_ = husky_data_buffer_->joint_state_q.back();
+        joint_state_packet_ = husky_data_buffer_->joint_state_q.front();
+        husky_data_buffer_->joint_state_q.pop();
         // drop everything older than the top measurement on the stack 
-        husky_data_buffer_->joint_state_q.clear();
+        // husky_data_buffer_->joint_state_q.clear();
 
         // Update Husky State
         state_.setJointState(joint_state_packet_);

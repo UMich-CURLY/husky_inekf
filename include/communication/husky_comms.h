@@ -11,9 +11,13 @@
 #include <string>
 
 
+#include <iostream>
+#include <fstream>
+
 class HuskyComms {
     public:
-        HuskyComms(ros::NodeHandle nh, husky_inekf::husky_data_t* husky_data_buffer);
+        HuskyComms(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer);
+        ~HuskyComms();
 
     private:
         void imuCallback(const sensor_msgs::Imu& imu_msg);
@@ -21,9 +25,11 @@ class HuskyComms {
         
         void sub();
 
-        ros::NodeHandle nh_;
+        ros::NodeHandle* nh_;
         ros::Subscriber imu_sub_;
         ros::Subscriber joint_sub_;
+        
+        std::ofstream outfile_;
 
         std::thread subscribing_thread_;
 

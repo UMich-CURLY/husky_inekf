@@ -71,6 +71,8 @@ class HuskySystem {
         bool new_pose_ready_;
         int log_pose_skip_;
         int skip_count_;
+
+        double last_imu_time_;
 };
 
 #endif // HUSKYSYSTEM_H

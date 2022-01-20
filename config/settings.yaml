@@ -1,6 +1,7 @@
 settings:
   initialize_state_from_first_observation: false
   imu_topic: "/gx5_0/imu/data"
+  joint_topic: "/joint_states"
   map_frame_id : "/odom"
   base_frame_id: "/husky/imu"
   pose_topic: "/husky/inekf_estimation/pose"
@@ -14,10 +15,11 @@ settings:
   estimator_publish_visualization_markers: true
   estimator_enable_debug: false
   estimator_static_bias_initialization: true
+  estimator_velocity_time_threshold: 0.1
 
   # Husky System
   system_enable_pose_publisher: true
-  system_enable_pose_logger: false
+  system_enable_pose_logger: true
   system_log_pose_skip: 100
   system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_kitti.txt"
   system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_tum.txt"

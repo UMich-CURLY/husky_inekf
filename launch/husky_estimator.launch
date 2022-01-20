@@ -9,6 +9,7 @@
     <node name="husky_inekf" pkg="husky_inekf" type="husky_estimator" output="screen" required="true"/>
 
 
+
     <!-- Run husky estimator publisher -->
     <rosparam file="$(find husky_inekf)/config/settings.yaml" command="load" />
     <!-- Initialize inEKF params -->

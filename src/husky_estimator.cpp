@@ -32,6 +32,9 @@
 #include <boost/thread/mutex.hpp>
 #include <boost/circular_buffer.hpp>
 
+#include <boost/timer/timer.hpp>
+
+
 int main(int argc, char **argv)
 {
     // Initialize ROS node
@@ -44,16 +47,20 @@ int main(int argc, char **argv)
     // Set noise parameters
     inekf::NoiseParams params;
 
-    HuskyComms husky_comms(nh, &husky_data_buffer);
+    std::cout<<"main nh namespace: "<<ros::this_node::getNamespace()<<std::endl;
+
+    HuskyComms husky_comms(&nh, &husky_data_buffer);
 
     // Initialize HuskySystem
     HuskySystem *system = new HuskySystem(&nh, &husky_data_buffer);
     // system->setEstimator(std::make_shared<BodyEstimator>());
 
+    
     // // //TODO: Listen/Respond Loop
     // bool received_data = true;
     while (ros::ok())
-    {
+    {   
+        //  boost::timer::auto_cpu_timer t;
         system->step();
         /// TODO: publish to ros
 
