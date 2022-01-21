@@ -131,6 +131,32 @@ void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_pac
     }
 }
 
+void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_in, HuskyState& state){
+
+    double t = velocity_packet_in.getTime();
+
+    if(std::abs(t-state.getTime())<velocity_t_thres_){
+        Eigen::Vector3d measured_velocity = velocity_packet_in.getLinearVelocity();
+        filter_.CorrectVelocity(measured_velocity, velocity_cov_);
+
+        
+        inekf::RobotState estimate = filter_.getState();
+        Eigen::Matrix3d R = estimate.getRotation(); 
+        Eigen::Vector3d p = estimate.getPosition();
+        Eigen::Vector3d v = estimate.getVelocity();
+        state.setBaseRotation(R);
+        state.setBasePosition(p);
+        state.setBaseVelocity(v); 
+        state.setTime(t);
+    }
+    else{
+        ROS_INFO("Velocity not updated because huge time different.");
+        std::cout << std::setprecision(20) << "t: " << t << std::endl;
+        std::cout << std::setprecision(20) << "state t: "<< state.getTime() << std::endl;
+        std::cout << std::setprecision(20) << "time diff: " << t-state.getTime() <<std::endl;
+    }
+}
+
 
 void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
     if (!static_bias_initialization_) {
@@ -185,6 +211,57 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
     Eigen::Matrix3d R0 = Eigen::Matrix3d::Identity();
 
     Eigen::Vector3d v0_body = joint_state_packet_in.getBodyLinearVelocity();
+    Eigen::Vector3d v0 = R0*v0_body; // initial velocity
+
+    // Eigen::Vector3d v0 = {0.0,0.0,0.0};
+    Eigen::Vector3d p0 = {0.0, 0.0, 0.0}; // initial position, we set imu frame as world frame
+
+    R0 = Eigen::Matrix3d::Identity();
+    inekf::RobotState initial_state; 
+    initial_state.setRotation(R0);
+    initial_state.setVelocity(v0);
+    initial_state.setPosition(p0);
+    initial_state.setGyroscopeBias(bg0_);
+    initial_state.setAccelerometerBias(ba0_);
+
+    // Initialize state covariance
+    initial_state.setRotationCovariance(0.03*Eigen::Matrix3d::Identity());
+    initial_state.setVelocityCovariance(0.01*Eigen::Matrix3d::Identity());
+    initial_state.setPositionCovariance(0.00001*Eigen::Matrix3d::Identity());
+    initial_state.setGyroscopeBiasCovariance(0.0001*Eigen::Matrix3d::Identity());
+    initial_state.setAccelerometerBiasCovariance(0.0025*Eigen::Matrix3d::Identity());
+
+    filter_.setState(initial_state);
+    std::cout << "Robot's state mean is initialized to: \n";
+    std::cout << filter_.getState() << std::endl;
+    std::cout << "Robot's state covariance is initialized to: \n";
+    std::cout << filter_.getState().getP() << std::endl;
+
+    // Set enabled flag
+    t_prev_ = imu_packet_in.getTime();
+    imu_prev_ << imu_packet_in.angular_velocity.x, 
+                imu_packet_in.angular_velocity.y, 
+                imu_packet_in.angular_velocity.z;
+                imu_packet_in.linear_acceleration.x,
+                imu_packet_in.linear_acceleration.y,
+                imu_packet_in.linear_acceleration.z;;
+    enabled_ = true;
+}
+
+void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in, 
+                        const VelocityMeasurement& velocity_packet_in, HuskyState& state) {
+    // Clear filter
+    filter_.clear();
+
+    // Initialize state mean
+    Eigen::Quaternion<double> quat(imu_packet_in.orientation.w, 
+                                   imu_packet_in.orientation.x,
+                                   imu_packet_in.orientation.y,
+                                   imu_packet_in.orientation.z); 
+    // Eigen::Matrix3d R0 = quat.toRotationMatrix(); // Initialize based on VectorNav estimate
+    Eigen::Matrix3d R0 = Eigen::Matrix3d::Identity();
+
+    Eigen::Vector3d v0_body = velocity_packet_in.getLinearVelocity();
     Eigen::Vector3d v0 = R0*v0_body; // initial velocity
 
     // Eigen::Vector3d v0 = {0.0,0.0,0.0};

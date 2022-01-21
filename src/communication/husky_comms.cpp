@@ -6,17 +6,21 @@
 HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer)
                         : nh_(nh), husky_data_buffer_(husky_data_buffer)
 {
-    std::string imu_topic, joint_topic;
+    std::string imu_topic, joint_topic, velocity_topic;
 
     nh_->param<std::string>("/settings/imu_topic", imu_topic, "/gx5_0/imu/data");
     nh_->param<std::string>("/settings/joint_topic", joint_topic, "/joint_states");
-
+    nh_->param<std::string>("/settings/velocity_topic", velocity_topic, "/gps/vel");
+    
     std::cout<<"husky comms nh namespace: "<<ros::this_node::getNamespace()<<std::endl;
 
-    std::cout<<"subscribing to: "<<imu_topic<<", and "<<joint_topic<<std::endl;
+    std::cout<<"subscribing to: "<<imu_topic<<joint_topic<<", and "<<velocity_topic << std::endl;
     // Initialize subscribers with queue size of 1000
     imu_sub_ = nh_->subscribe(imu_topic, 1000, &HuskyComms::imuCallback, this);
+    
     joint_sub_ = nh_->subscribe(joint_topic, 1000, &HuskyComms::jointStateCallback, this);
+
+    vel_sub_ = nh_->subscribe(velocity_topic, 1000, &HuskyComms::velocityCallback, this);
 
 
     // start the subscribing thread
@@ -30,7 +34,7 @@ HuskyComms::~HuskyComms()
 
 
 void HuskyComms::sub(){
-    // ros::MultiThreadedSpinner spinner(2); // Use 2 threads
+    // ros::MultiThreadedSpinner spinner(4); // Use 2 threads
     // spinner.spin();
     while(ros::ok()){
         ros::spinOnce();
@@ -64,4 +68,13 @@ void HuskyComms::jointStateCallback(const sensor_msgs::JointState& joint_msg)
     std::lock_guard<std::mutex> lock(husky_data_buffer_->joint_state_mutex);
     husky_data_buffer_->joint_state_q.push(joint_ptr);
     // std::cout<<"joint state size: "<<husky_data_buffer_->joint_state_q.size()<<std::endl;
+}
+
+
+void HuskyComms::velocityCallback(const geometry_msgs::TwistStamped& vel_msg){
+    auto vel_ptr = 
+        std::make_shared<husky_inekf::VelocityMeasurement>(vel_msg);
+
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
+    husky_data_buffer_ -> velocity_q.push(vel_ptr);
 }

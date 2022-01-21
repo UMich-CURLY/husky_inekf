@@ -13,6 +13,7 @@
 #include "utils/husky_data.hpp"
 #include "utils/joint_state.hpp"
 #include "utils/imu.hpp"
+#include "utils/velocity.hpp"
 
 #include "communication/pose_publisher_node.hpp"
 
@@ -52,6 +53,9 @@ class HuskySystem {
         // Most recent data packet
         husky_inekf::JointStateMeasurementPtr joint_state_packet_;
         husky_inekf::ImuMeasurementPtr imu_packet_;
+        husky_inekf::VelocityMeasurementPtr velocity_packet_;
+
+        int velocity_type_;
 
         std::ofstream outfile_;
         std::ofstream tum_outfile_;
@@ -59,6 +63,7 @@ class HuskySystem {
         // Update most recent packet to use
         bool updateNextIMU();
         bool updateNextJointState();
+        bool updateNextVelocity();
 
         // Publish output path
         void logPoseTxt(const husky_inekf::HuskyState& state_);

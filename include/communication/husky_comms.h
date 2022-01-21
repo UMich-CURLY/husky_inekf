@@ -2,11 +2,13 @@
 #include "ros/ros.h"
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/JointState.h"
+#include "geometry_msgs/TwistStamped.h"
 
 /* Husky Data Structures For Internal Program */
 #include "utils/husky_data.hpp"
 #include "utils/imu.hpp"
 #include "utils/joint_state.hpp"
+#include "utils/velocity.hpp"
 #include <thread>
 #include <string>
 
@@ -22,13 +24,15 @@ class HuskyComms {
     private:
         void imuCallback(const sensor_msgs::Imu& imu_msg);
         void jointStateCallback(const sensor_msgs::JointState& joint_msg);
+        void velocityCallback(const geometry_msgs::TwistStamped& vel_msg);
         
         void sub();
 
         ros::NodeHandle* nh_;
         ros::Subscriber imu_sub_;
         ros::Subscriber joint_sub_;
-        
+        ros::Subscriber vel_sub_;
+
         std::ofstream outfile_;
 
         std::thread subscribing_thread_;

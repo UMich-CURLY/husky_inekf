@@ -63,7 +63,6 @@ int main(int argc, char **argv)
         //  boost::timer::auto_cpu_timer t;
         system->step();
         /// TODO: publish to ros
-
         ros::spinOnce();
     }
 

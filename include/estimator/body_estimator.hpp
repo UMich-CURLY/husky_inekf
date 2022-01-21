@@ -28,8 +28,12 @@ class BodyEstimator {
         // void initState();
         void initState(const ImuMeasurement<double>& imu_packet_in, 
                         const JointStateMeasurement& joint_state_packet_in, HuskyState& state);
+        void initState(const ImuMeasurement<double>& imu_packet_in, 
+                        const VelocityMeasurement& velocity_packet_in, HuskyState& state);
         void propagateIMU(const ImuMeasurement<double>& imu_packet_in, HuskyState& state);
         void correctVelocity(const JointStateMeasurement& joint_state_packet_in, HuskyState& state);
+        void correctVelocity(const VelocityMeasurement& velocity_packet_in, HuskyState& state);
+        
         inekf::InEKF getFilter() const;
         inekf::RobotState getState() const;
 
