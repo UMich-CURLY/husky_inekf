@@ -10,6 +10,8 @@ HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_da
 
     nh_->param<std::string>("/settings/imu_topic", imu_topic, "/gx5_0/imu/data");
     nh_->param<std::string>("/settings/joint_topic", joint_topic, "/joint_states");
+
+    // Velocity topic:
     nh_->param<std::string>("/settings/velocity_topic", velocity_topic, "/gps/vel");
     
     std::cout<<"husky comms nh namespace: "<<ros::this_node::getNamespace()<<std::endl;
@@ -20,8 +22,11 @@ HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_da
     
     joint_sub_ = nh_->subscribe(joint_topic, 1000, &HuskyComms::jointStateCallback, this);
 
-    vel_sub_ = nh_->subscribe(velocity_topic, 1000, &HuskyComms::velocityCallback, this);
+    // Velocity subscribtion
+    vel_sub_ = nh_->subscribe(velocity_topic, 1000, &HuskyComms::GPSvelocityCallback, this);
 
+    MeasurementType vel_type = JOINT_STATE;
+    velocityCallback(vel_type);
 
     // start the subscribing thread
     subscribing_thread_ = std::thread([this]{this->sub();});
@@ -71,7 +76,55 @@ void HuskyComms::jointStateCallback(const sensor_msgs::JointState& joint_msg)
 }
 
 
-void HuskyComms::velocityCallback(const geometry_msgs::TwistStamped& vel_msg){
+void HuskyComms::GPSvelocityCallback(const geometry_msgs::TwistStamped& vel_msg){
+    auto vel_ptr = 
+        std::make_shared<husky_inekf::VelocityMeasurement>(vel_msg);
+
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
+    husky_data_buffer_ -> gps_velocity_q.push(vel_ptr);
+}
+
+void HuskyComms::velocityCallback(const MeasurementType vel_type){
+    geometry_msgs::TwistStamped vel_msg;
+    
+    switch(vel_type) {
+        case JOINT_STATE:
+        {
+            auto joint_state_ptr = husky_data_buffer_->joint_state_q.front().get();
+            vel_msg.twist.linear.x = joint_state_ptr->getBodyLinearVelocity()(0);
+            vel_msg.twist.linear.y = joint_state_ptr->getBodyLinearVelocity()(1);
+            vel_msg.twist.linear.z = joint_state_ptr->getBodyLinearVelocity()(2);
+
+            vel_msg.twist.angular.x = joint_state_ptr->getBodyAngularVelocity()(0);
+            vel_msg.twist.angular.y = joint_state_ptr->getBodyAngularVelocity()(1);
+            vel_msg.twist.angular.z = joint_state_ptr->getBodyAngularVelocity()(2);
+        }
+            break;
+
+        case GPS_VELOCITY:
+        {
+            auto gps_velocity_ptr = husky_data_buffer_ -> gps_velocity_q.front().get();
+            vel_msg.twist.linear.x = gps_velocity_ptr->getLinearVelocity()(0);
+            vel_msg.twist.linear.y = gps_velocity_ptr->getLinearVelocity()(1);
+            vel_msg.twist.linear.z = gps_velocity_ptr->getLinearVelocity()(2);
+
+            vel_msg.twist.angular.x = gps_velocity_ptr->getAngularVelocity()(0);
+            vel_msg.twist.angular.y = gps_velocity_ptr->getAngularVelocity()(1);
+            vel_msg.twist.angular.z = gps_velocity_ptr->getAngularVelocity()(2);
+        }            
+            break;
+        
+        case CAMERA_ODOM:
+        {
+            
+        }
+            break;
+
+        default:
+            std::cout << "Invalid velocity measurement" << std::endl;
+    }
+
+
     auto vel_ptr = 
         std::make_shared<husky_inekf::VelocityMeasurement>(vel_msg);
 

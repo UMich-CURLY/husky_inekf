@@ -24,6 +24,8 @@ struct husky_data_t {
     std::queue<std::shared_ptr<ImuMeasurement<double> > > imu_q;
     // Use vector like a stack, using vector to enable O(1) clear operation
     std::queue<std::shared_ptr<JointStateMeasurement> > joint_state_q;
+    std::queue<std::shared_ptr<VelocityMeasurement> > gps_velocity_q;
+
     std::queue<std::shared_ptr<VelocityMeasurement> > velocity_q;
 };
 

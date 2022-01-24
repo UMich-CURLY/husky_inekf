@@ -24,7 +24,8 @@ class HuskyComms {
     private:
         void imuCallback(const sensor_msgs::Imu& imu_msg);
         void jointStateCallback(const sensor_msgs::JointState& joint_msg);
-        void velocityCallback(const geometry_msgs::TwistStamped& vel_msg);
+        void GPSvelocityCallback(const geometry_msgs::TwistStamped& vel_msg);
+        void velocityCallback(const MeasurementType vel_type);
         
         void sub();
 
