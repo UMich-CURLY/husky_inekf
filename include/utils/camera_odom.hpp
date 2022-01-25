@@ -2,6 +2,7 @@
 
 /* ROS specific interface */
 #include "geometry_msgs/TwistStamped.h"
+#include <unsupported/Eigen/MatrixFunctions>
 #include "nav_msgs/Odometry.h"
 #include "utils/measurement.h"
 #include <stdint.h>
@@ -23,48 +24,45 @@ namespace husky_inekf {
             CameraOdomMeasurement(const nav_msgs::Odometry& camera_odom_msg){
                 type_ = CAMERA_ODOM;
 
-                lin_vel_.resize(3, 1);
-                ang_vel_.resize(3, 1);
-                position_.resize(3, 1);
-                orientation_.resize(4, 1);
-                setPosition(camera_odom_msg.pose.pose.position); // [x, y, z]
-                setOrientaion(camera_odom_msg.pose.pose.orientation); // [x, y, z]
-          
+                setTranslation(camera_odom_msg.pose.pose.position); // [x, y, z]
+                setRotation(camera_odom_msg.pose.pose.orientation); // [x, y, z]
                 setHeader(camera_odom_msg.header);
+
+                setTransformation();
             }
 
 
-            void setPosition(const geometry_msgs::Point& position_in) {
+            void setTranslation(const geometry_msgs::Point& position_in) {
                 
-                position_(0) = position_in.x;
-                position_(1) = position_in.y;
-                position_(2) = position_in.z;
+                translation_(0) = position_in.x;
+                translation_(1) = position_in.y;
+                translation_(2) = position_in.z;
                 
             }
 
-            void setOrientation(const geometry_msgs::Quaternion& orientation_in) {
-                Eigen::Quaternion<float64> orientation_quat(orientation_in.w,
+            void setRotation(const geometry_msgs::Quaternion& orientation_in) {
+                Eigen::Quaternion<double> orientation_quat(orientation_in.w,
                                                             orientation_in.x,
                                                             orientation_in.y,
-                                                            orientation_in.z)
-                auto euler = orientation_quat.toRotationMatrix().eulerAngles(0, 1, 2);
-                orientation_(0) = orientation_in(0);
-                orientation_(1) = orientation_in(1);
-                orientation_(2) = orientation_in(2);
+                                                            orientation_in.z);
+                rotation_ = orientation_quat.toRotationMatrix();
             }
 
-            inline const Eigen::VectorXd&  getOrientation() const {
-                return position_;
+            void setTransformation() {
+                transformation_.setIdentity();
+                transformation_.block<3,3>(0,0) = rotation_;
+                transformation_.block<3,1>(0,3) = translation_;
             }
 
-            inline const Eigen::VectorXd&  getOrientation() const {
-                return orientation_;
+            inline const Eigen::Matrix4d&  getTransformation() const {
+                return transformation_;
             }
     
         private:
 
-            Eigen::VectorXd position_;
-            Eigen::VectorXd orientation_;
+            Eigen::Vector3d translation_;
+            Eigen::Matrix3d rotation_;
+            Eigen::Matrix4d transformation_;
     };
 
     typedef std::shared_ptr<CameraOdomMeasurement> CameraOdomMeasurementPtr;

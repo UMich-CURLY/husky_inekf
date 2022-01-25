@@ -93,6 +93,16 @@
         "state": "cpp",
         "ref_ptr": "cpp",
         "mixinvector": "cpp",
-        "light": "cpp"
+        "light": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp",
+        "codecvt": "cpp",
+        "unordered_set": "cpp",
+        "filesystem": "cpp",
+        "__nullptr": "cpp",
+        "core": "cpp",
+        "__mutex_base": "cpp",
+        "queue": "cpp",
+        "stack": "cpp"
     }
 }

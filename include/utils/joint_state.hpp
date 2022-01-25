@@ -2,6 +2,7 @@
 
 /* ROS specific interface */
 #include "sensor_msgs/JointState.h"
+#include <unsupported/Eigen/MatrixFunctions>
 
 #include "utils/measurement.h"
 #include <stdint.h>

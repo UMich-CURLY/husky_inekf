@@ -6,6 +6,7 @@
 #include "utils/imu.hpp"
 #include "utils/joint_state.hpp"
 #include "utils/velocity.hpp"
+#include "utils/camera_odom.hpp"
 
 #include <mutex>
 #include <thread>
@@ -24,8 +25,7 @@ struct husky_data_t {
     std::queue<std::shared_ptr<ImuMeasurement<double> > > imu_q;
     // Use vector like a stack, using vector to enable O(1) clear operation
     std::queue<std::shared_ptr<JointStateMeasurement> > joint_state_q;
-    std::queue<std::shared_ptr<VelocityMeasurement> > gps_velocity_q;
-
+    std::queue<std::shared_ptr<CameraOdomMeasurement> > camera_odom_q;
     std::queue<std::shared_ptr<VelocityMeasurement> > velocity_q;
 };
 

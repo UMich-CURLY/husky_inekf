@@ -9,9 +9,11 @@
 #include "utils/imu.hpp"
 #include "utils/joint_state.hpp"
 #include "utils/velocity.hpp"
+#include "utils/camera_odom.hpp"
+
 #include <thread>
 #include <string>
-
+#include <unsupported/Eigen/MatrixFunctions>
 
 #include <iostream>
 #include <fstream>
@@ -24,8 +26,10 @@ class HuskyComms {
     private:
         void imuCallback(const sensor_msgs::Imu& imu_msg);
         void jointStateCallback(const sensor_msgs::JointState& joint_msg);
+        void jointStateVelocityCallback(const sensor_msgs::JointState& joint_msg);
         void GPSvelocityCallback(const geometry_msgs::TwistStamped& vel_msg);
-        void velocityCallback(const MeasurementType vel_type);
+        void CameraOdomCallBack(const nav_msgs::Odometry& camera_odom_msg);
+        // void velocityCallback(const MeasurementType vel_type);
         
         void sub();
 

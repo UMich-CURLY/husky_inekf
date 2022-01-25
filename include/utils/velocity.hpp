@@ -2,6 +2,7 @@
 
 /* ROS specific interface */
 #include "geometry_msgs/TwistStamped.h"
+#include <unsupported/Eigen/MatrixFunctions>
 
 #include "utils/measurement.h"
 #include <stdint.h>
@@ -27,7 +28,6 @@ namespace husky_inekf {
                 setAngularVelocity(vel_msg.twist.angular);                
                 setHeader(vel_msg.header);
             }
-
 
             void setLinearVelocity(const geometry_msgs::Vector3& lin_vel_in) {
                 
