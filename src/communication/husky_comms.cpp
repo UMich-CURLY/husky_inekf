@@ -117,11 +117,14 @@ void HuskyComms::jointStateVelocityCallback(const sensor_msgs::JointState& joint
     vel_msg.twist.angular.z = joint_state_ptr->getBodyAngularVelocity()(2);
     auto vel_ptr = std::make_shared<husky_inekf::VelocityMeasurement>(vel_msg);
 
-    std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
-    std::lock_guard<std::mutex> lock2(husky_data_buffer_->joint_state_mutex);
 
+    std::lock_guard<std::mutex> lock2(husky_data_buffer_->joint_state_mutex);
     husky_data_buffer_->joint_state_q.push(joint_state_ptr);
+
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
     husky_data_buffer_ -> velocity_q.push(vel_ptr);
+    
+    // std::cout<<husky_data_buffer_ -> velocity_q.size()<<std::endl;
     // std::cout<<"joint state size: "<<husky_data_buffer_->joint_state_q.size()<<std::endl;
 }
 
@@ -155,19 +158,19 @@ void HuskyComms::CameraOdomCallBack(const nav_msgs::Odometry& camera_odom_msg) {
     double time_diff = curr_time - prev_time;
 
     Eigen::Matrix4d transformation = prev_transformation.inverse() * curr_transformation;
-    Eigen::Matrix4d transformation_lie_algebra = transformation.log();
+    Eigen::Matrix4d twist_se3 = transformation.log();
 
     geometry_msgs::TwistStamped vel_msg;
 
     vel_msg.header = camera_odom_msg.header;
 
-    vel_msg.twist.linear.x = transformation_lie_algebra(0, 3) / time_diff;
-    vel_msg.twist.linear.y = transformation_lie_algebra(1, 3) / time_diff;
-    vel_msg.twist.linear.z = transformation_lie_algebra(2, 3) / time_diff;
+    vel_msg.twist.linear.x = twist_se3(0, 3) / time_diff;
+    vel_msg.twist.linear.y = twist_se3(1, 3) / time_diff;
+    vel_msg.twist.linear.z = twist_se3(2, 3) / time_diff;
 
-    vel_msg.twist.angular.x = transformation_lie_algebra(2, 1) / time_diff;
-    vel_msg.twist.angular.y = -transformation_lie_algebra(2, 0) / time_diff;
-    vel_msg.twist.angular.z = transformation_lie_algebra(1, 0) / time_diff;
+    vel_msg.twist.angular.x = twist_se3(2, 1) / time_diff;
+    vel_msg.twist.angular.y = -twist_se3(2, 0) / time_diff;
+    vel_msg.twist.angular.z = twist_se3(1, 0) / time_diff;
     
     auto vel_ptr = std::make_shared<husky_inekf::VelocityMeasurement>(vel_msg);
 

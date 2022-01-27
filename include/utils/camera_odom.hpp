@@ -19,10 +19,17 @@ namespace husky_inekf {
             // Construct Encoder measurement
             CameraOdomMeasurement() {
                 type_ = CAMERA_ODOM;
+                translation_ = Eigen::Vector3d::Zero();
+                rotation_ = Eigen::Matrix3d::Identity();
+                transformation_ = Eigen::Matrix4d::Identity();
             }
 
             CameraOdomMeasurement(const nav_msgs::Odometry& camera_odom_msg){
                 type_ = CAMERA_ODOM;
+                
+                translation_ = Eigen::Vector3d::Zero();
+                rotation_ = Eigen::Matrix3d::Identity();
+                transformation_ = Eigen::Matrix4d::Identity();
 
                 setTranslation(camera_odom_msg.pose.pose.position); // [x, y, z]
                 setRotation(camera_odom_msg.pose.pose.orientation); // [x, y, z]
@@ -49,7 +56,6 @@ namespace husky_inekf {
             }
 
             void setTransformation() {
-                transformation_.setIdentity();
                 transformation_.block<3,3>(0,0) = rotation_;
                 transformation_.block<3,1>(0,3) = translation_;
             }

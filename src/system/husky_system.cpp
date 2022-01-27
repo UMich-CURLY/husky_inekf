@@ -52,7 +52,7 @@ void HuskySystem::step() {
             new_pose_ready_ = true;
         }
 
-        if (updateNextJointState() && updateNextVelocity()) {
+        if (updateNextVelocity()) {
             estimator_.correctVelocity(*(velocity_packet_.get()),state_);
             // std::cout << "new_pose_ready_" << std::endl;
             new_pose_ready_ = true;
@@ -109,9 +109,10 @@ void HuskySystem::step() {
             while(!updateNextIMU()){};
             
             while(!updateNextVelocity()){}
+            
             estimator_.initState(*(imu_packet_.get()), *(velocity_packet_.get()), state_);
+            
             // husky_data_buffer_->joint_state_q = {};
-            husky_data_buffer_->velocity_q = {};
 
             // if(velocity_type_ == 0){
             //     // wait until we receive joint state msg
@@ -135,7 +136,7 @@ void HuskySystem::step() {
             // }
             
             estimator_.enableFilter();
-            
+            husky_data_buffer_->velocity_q = {};
             
             std::cout<<"State initialized."<<std::endl;
         } else {
@@ -234,6 +235,7 @@ bool HuskySystem::updateNextVelocity() {
 
         velocity_packet_ = husky_data_buffer_->velocity_q.front();
         husky_data_buffer_->velocity_q.pop();
+
         // drop everything older than the top measurement on the stack 
         // husky_data_buffer_->joint_state_q.clear();
 
@@ -242,5 +244,6 @@ bool HuskySystem::updateNextVelocity() {
 
         return true;
     }
+    // std::cout<<"velocity q empty... "<<std::endl;
     return false;
 }
