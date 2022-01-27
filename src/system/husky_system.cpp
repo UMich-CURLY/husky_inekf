@@ -27,7 +27,7 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
     nh_->param<bool>("/settings/system_enable_pose_logger", enable_pose_logger_, false);
     nh_->param<int>("/settings/system_log_pose_skip", log_pose_skip_, 100);
-    nh_->param<int>("/settings/system_velocity_type", velocity_type_, 0);
+    // nh_->param<int>("/settings/system_velocity_type", velocity_type_, 0);
 
     last_imu_time_ = 0;
 }
@@ -44,7 +44,7 @@ void HuskySystem::step() {
     // if the estimator is initialized
     
     if (estimator_.enabled()){
-
+        
         // if IMU measurement exists we do prediction
         if(updateNextIMU()){
             // std::cout<<"propagate time: "<<ros::Time::now()<<std::endl;
@@ -52,29 +52,40 @@ void HuskySystem::step() {
             new_pose_ready_ = true;
         }
 
-        if(velocity_type_ == 0){
-            // if velocity measurement exsits we do correction
-            if(updateNextJointState()){
-                estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
-                new_pose_ready_ = true;
-            }
+        if (updateNextJointState() && updateNextVelocity()) {
+            estimator_.correctVelocity(*(velocity_packet_.get()),state_);
+            // std::cout << "new_pose_ready_" << std::endl;
+            new_pose_ready_ = true;
         }
-        else if(velocity_type_ == 1){
-            if(updateNextVelocity()){
-                estimator_.correctVelocity(*(velocity_packet_.get()),state_);
-                new_pose_ready_ = true;
-            }
-        }
-        else if(velocity_type_ == 3){
-            if(updateNextVelocity()){
-                estimator_.correctVelocity(*(velocity_packet_.get()),state_);
-                new_pose_ready_ = true;
-            }
-            if(updateNextJointState()){
-                estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
-                new_pose_ready_ = true;
-            }
-        }
+
+        // if(updateNextJointState()){
+        //     estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
+        //     new_pose_ready_ = true;
+        // }
+
+        // if(velocity_type_ == 0){
+        //     // if velocity measurement exsits we do correction
+        //     if(updateNextJointState()){
+        //         estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
+        //         new_pose_ready_ = true;
+        //     }
+        // }
+        // else if(velocity_type_ == 1){
+        //     if(updateNextVelocity()){
+        //         estimator_.correctVelocity(*(velocity_packet_.get()),state_);
+        //         new_pose_ready_ = true;
+        //     }
+        // }
+        // else if(velocity_type_ == 3){
+        //     if(updateNextVelocity()){
+        //         estimator_.correctVelocity(*(velocity_packet_.get()),state_);
+        //         new_pose_ready_ = true;
+        //     }
+        //     if(updateNextJointState()){
+        //         estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
+        //         new_pose_ready_ = true;
+        //     }
+        // }
         
 
         if (enable_pose_publisher_ && new_pose_ready_) {
@@ -96,27 +107,32 @@ void HuskySystem::step() {
         if (estimator_.biasInitialized()) {
             // wait until we receive imu msg
             while(!updateNextIMU()){};
+            
+            while(!updateNextVelocity()){}
+            estimator_.initState(*(imu_packet_.get()), *(velocity_packet_.get()), state_);
+            // husky_data_buffer_->joint_state_q = {};
+            husky_data_buffer_->velocity_q = {};
 
-            if(velocity_type_ == 0){
-                // wait until we receive joint state msg
-                while(!updateNextJointState()){};
-                estimator_.initState(*(imu_packet_.get()), *(joint_state_packet_.get()), state_);
-                husky_data_buffer_->joint_state_q = {};
-            }
-            else if(velocity_type_ == 1){
-                // wait until we receive joint state msg
+            // if(velocity_type_ == 0){
+            //     // wait until we receive joint state msg
+            //     while(!updateNextJointState()){};
+            //     estimator_.initState(*(imu_packet_.get()), *(joint_state_packet_.get()), state_);
+            //     husky_data_buffer_->joint_state_q = {};
+            // }
+            // else if(velocity_type_ == 1){
+            //     // wait until we receive joint state msg
 
-                while(!updateNextVelocity()){};
-                estimator_.initState(*(imu_packet_.get()), *(velocity_packet_.get()), state_);
-                husky_data_buffer_->velocity_q = {};
-            }
-            else if(velocity_type_ == 3){
-                // wait until we receive joint state msg
-                while(!updateNextJointState()){};
-                estimator_.initState(*(imu_packet_.get()), *(joint_state_packet_.get()), state_);
-                husky_data_buffer_->joint_state_q = {};
-                husky_data_buffer_->velocity_q = {};
-            }
+            //     while(!updateNextVelocity()){};
+            //     estimator_.initState(*(imu_packet_.get()), *(velocity_packet_.get()), state_);
+            //     husky_data_buffer_->velocity_q = {};
+            // }
+            // else if(velocity_type_ == 3){
+            //     // wait until we receive joint state msg
+            //     while(!updateNextJointState()){};
+            //     estimator_.initState(*(imu_packet_.get()), *(joint_state_packet_.get()), state_);
+            //     husky_data_buffer_->joint_state_q = {};
+            //     husky_data_buffer_->velocity_q = {};
+            // }
             
             estimator_.enableFilter();
             
@@ -208,6 +224,7 @@ bool HuskySystem::updateNextJointState() {
 
 bool HuskySystem::updateNextVelocity() {
     std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
+    
     if (!husky_data_buffer_->velocity_q.empty()) {
 
         if(husky_data_buffer_->velocity_q.size()>1){

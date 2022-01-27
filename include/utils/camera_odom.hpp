@@ -57,6 +57,8 @@ namespace husky_inekf {
             inline const Eigen::Matrix4d&  getTransformation() const {
                 return transformation_;
             }
+
+            
     
         private:
 

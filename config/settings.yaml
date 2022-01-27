@@ -2,7 +2,7 @@ settings:
   initialize_state_from_first_observation: false
   imu_topic: "/gx5_0/imu/data"
   joint_topic: "/joint_states"
-  velocity_topic: "/gps/vel"
+  velocity_topic: "zed_node/odom" # "/joint_states", "/gps/vel", "zed_node/odom"
   map_frame_id : "/odom"
   base_frame_id: "/husky/imu"
   pose_topic: "/husky/inekf_estimation/pose"
@@ -11,7 +11,8 @@ settings:
   enable_kinematics: true
   flat_ground: false
 
-  
+  velocity_type: 3  # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
+
   # Body Estimator
   estimator_publish_visualization_markers: true
   estimator_enable_debug: false
@@ -25,7 +26,6 @@ settings:
   system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_kitti.txt"
   system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_tum.txt"
   system_velocity_type: 1
-
 
   # Path Publisher
   pose_topic: "/husky/inekf_estimation/pose"
