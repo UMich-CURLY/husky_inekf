@@ -22,26 +22,38 @@ void removeRowAndColumn(Eigen::MatrixXd& M, int index);
 // Default constructor
 InEKF::InEKF() : 
     g_((Eigen::VectorXd(3) << 0,0,-9.81).finished()), 
-    magnetic_field_((Eigen::VectorXd(3) << 0,0,0).finished()) {}
+    magnetic_field_((Eigen::VectorXd(3) << 0,0,0).finished()) {
+        /// DELETE:
+        dTheta_out.open(dTheta_out_path);
+    }
 
 // Constructor with noise params
 InEKF::InEKF(NoiseParams params) : 
     g_((Eigen::VectorXd(3) << 0,0,-9.81).finished()), 
     magnetic_field_((Eigen::VectorXd(3) << std::cos(1.2049),0,std::sin(1.2049)).finished()), 
-    noise_params_(params) {}
+    noise_params_(params) {
+        /// DELETE:
+        dTheta_out.open(dTheta_out_path);
+    }
 
 // Constructor with initial state
 InEKF::InEKF(RobotState state) : 
     g_((Eigen::VectorXd(3) << 0,0,-9.81).finished()), 
     magnetic_field_((Eigen::VectorXd(3) << std::cos(1.2049),0,std::sin(1.2049)).finished()), 
-    state_(state) {}
+    state_(state) {
+        /// DELETE:
+        dTheta_out.open(dTheta_out_path);
+    }
 
 // Constructor with initial state and noise params
 InEKF::InEKF(RobotState state, NoiseParams params) : 
     g_((Eigen::VectorXd(3) << 0,0,-9.81).finished()), 
     magnetic_field_((Eigen::VectorXd(3) << std::cos(1.2049),0,std::sin(1.2049)).finished()), 
     state_(state), 
-    noise_params_(params) {}
+    noise_params_(params) {
+        /// DELETE:
+        dTheta_out.open(dTheta_out_path);
+    }
 
 // Constructor with initial state, noise params, and error type
 InEKF::InEKF(RobotState state, NoiseParams params, ErrorType error_type) : 
@@ -49,7 +61,10 @@ InEKF::InEKF(RobotState state, NoiseParams params, ErrorType error_type) :
     magnetic_field_((Eigen::VectorXd(3) << std::cos(1.2049),0,std::sin(1.2049)).finished()), 
     state_(state), 
     noise_params_(params), 
-    error_type_(error_type) {}
+    error_type_(error_type) {
+        /// DELETE:
+        dTheta_out.open(dTheta_out_path);
+    }
 
 // Clear all data in the filter
 void InEKF::clear() {
@@ -59,6 +74,10 @@ void InEKF::clear() {
     estimated_landmarks_.clear();
     contacts_.clear();
     estimated_contact_positions_.clear();
+}
+
+InEKF::~InEKF() {
+    dTheta_out.close();
 }
 
 // Returns the robot's current error type
@@ -318,10 +337,10 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     int dimP = state_.dimP();
 
     // Remove bias
-    Theta = Eigen::Matrix<double,6,1>::Zero();
-    P.block<6,6>(dimP-dimTheta,dimP-dimTheta) = 0.0001*Eigen::Matrix<double,6,6>::Identity();
-    P.block(0,dimP-dimTheta,dimP-dimTheta,dimTheta) = Eigen::MatrixXd::Zero(dimP-dimTheta,dimTheta);
-    P.block(dimP-dimTheta,0,dimTheta,dimP-dimTheta) = Eigen::MatrixXd::Zero(dimTheta,dimP-dimTheta);
+    // Theta = Eigen::Matrix<double,6,1>::Zero();
+    // P.block<6,6>(dimP-dimTheta,dimP-dimTheta) = 0.0001*Eigen::Matrix<double,6,6>::Identity();
+    // P.block(0,dimP-dimTheta,dimP-dimTheta,dimTheta) = Eigen::MatrixXd::Zero(dimP-dimTheta,dimTheta);
+    // P.block(dimP-dimTheta,0,dimTheta,dimP-dimTheta) = Eigen::MatrixXd::Zero(dimTheta,dimP-dimTheta);
     // std::cout << "P:\n" << P << std::endl;
     // std::cout << state_ << std::endl;
 
@@ -337,13 +356,32 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     Eigen::MatrixXd S = H * PHT + N;
     Eigen::MatrixXd K = PHT * S.inverse();
 
+    std::string sep = "\n----------------------------------------\n";
+    // std::cout << "The matrix K is: \n" << K << sep << std::endl;
+    // std::cout << "The matrix Z is: \n" << Z << sep << std::endl;
+    // std::cout << "The matrix N is: \n" << N << sep << std::endl;
+    // std::cout << "The matrix H is: \n" << H << sep << std::endl;
+    // std::cout << "The matrix P is: \n" << P << sep << std::endl;
+    // std::cout << "The matrix PHT is: \n" << PHT << sep << std::endl;
+    // std::cout << "The matrix S is: \n" << S << sep << std::endl;
+    
+
     // Compute state correction vector
     Eigen::VectorXd delta = K*Z;
     Eigen::MatrixXd dX = Exp_SEK3(delta.segment(0,delta.rows()-dimTheta));
     Eigen::VectorXd dTheta = delta.segment(delta.rows()-dimTheta, dimTheta);
-
+    
     // Update state
     Eigen::MatrixXd X_new = dX*X; // Right-Invariant Update
+
+    
+    
+    /// CHANGEBACK: remember to change the factor back to 1:
+    // double alpha = 0;
+    // dTheta *= alpha;
+    /// DELETE:
+    dTheta_out << dTheta << std::endl;
+
     Eigen::VectorXd Theta_new = Theta + dTheta;
 
     // Set new state  

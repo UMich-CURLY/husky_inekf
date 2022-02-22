@@ -1,6 +1,6 @@
 settings:
   initialize_state_from_first_observation: false
-  imu_topic: "/carla/ego_vehicle/imu" # "/gx5_0/imu/data", "/carla/ego_vehicle/imu"
+  imu_topic: "imu_with_noise" # "/gx5_0/imu/data", "/carla/ego_vehicle/imu", "imu_with_noise"
   joint_topic: "/joint_states"
   map_frame_id : "/odom"
   base_frame_id: "/husky/imu" 
@@ -10,8 +10,8 @@ settings:
   enable_kinematics: true
   flat_ground: false
 
-  velocity_type: 3  # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
-  velocity_topic: "/carla/ego_vehicle/odometry" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry"
+  velocity_type: 2  # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
+  velocity_topic: "carla_velocity" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
 
   # Body Estimator
   estimator_publish_visualization_markers: true

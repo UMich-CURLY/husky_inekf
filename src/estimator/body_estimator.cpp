@@ -4,6 +4,11 @@ namespace husky_inekf{
 
 BodyEstimator::BodyEstimator() :
     t_prev_(0), imu_prev_(Eigen::Matrix<double,6,1>::Zero()) {
+    
+    /// DELETE:
+    std::string bias_file_name_ = "/home/tingjun/Desktop/Husky/catkin_ws/bias_vs_time.txt";
+    bias_outfile_.open(bias_file_name_,std::ofstream::out);
+    bias_outfile_.precision(20);
 
     // Create private node handle
     ros::NodeHandle nh("~");
@@ -43,6 +48,10 @@ BodyEstimator::BodyEstimator() :
     std::cout << velocity_cov_ <<std::endl;
 }
 
+BodyEstimator::~BodyEstimator() {
+    /// DELETE:
+    bias_outfile_.close();
+}
 
 bool BodyEstimator::biasInitialized() { return bias_initialized_; }
 bool BodyEstimator::enabled() { return enabled_; }
@@ -117,6 +126,7 @@ void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_pac
         Eigen::Matrix3d R = estimate.getRotation(); 
         Eigen::Vector3d p = estimate.getPosition();
         Eigen::Vector3d v = estimate.getVelocity();
+        
         state.setBaseRotation(R);
         state.setBasePosition(p);
         state.setBaseVelocity(v); 
@@ -143,6 +153,15 @@ void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_i
         Eigen::Matrix3d R = estimate.getRotation(); 
         Eigen::Vector3d p = estimate.getPosition();
         Eigen::Vector3d v = estimate.getVelocity();
+
+        /// DELETE:
+        Eigen::Vector3d gyro_bias = estimate.getGyroscopeBias();
+        Eigen::Vector3d acc_bias = estimate.getAccelerometerBias();
+
+        bias_outfile_ << t << "\n" << gyro_bias << "\n" << acc_bias << std::endl;
+        // std::cout << "Gyro_bias: " << gyro_bias << std::endl;
+        // std::cout << "Acc_bias: " << acc_bias << std::endl;
+
         state.setBaseRotation(R);
         state.setBasePosition(p);
         state.setBaseVelocity(v); 
@@ -266,8 +285,15 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
     // Eigen::Vector3d v0 = {0.0,0.0,0.0};
     Eigen::Vector3d p0 = {0.0, 0.0, 0.0}; // initial position, we set imu frame as world frame
 
+    ///DELETE:
+    // bg0_ = {0.0515698903002, 0.0515698903002, 0.0515698903002};
+    // ba0_ = {0.515757598072, 0.515757598072, 0.515757598072};
+    // bg0_ = {0., 0., 0.};
+    // ba0_ = {0., 0., 0.};
+
     R0 = Eigen::Matrix3d::Identity();
     inekf::RobotState initial_state; 
+
     initial_state.setRotation(R0);
     initial_state.setVelocity(v0);
     initial_state.setPosition(p0);

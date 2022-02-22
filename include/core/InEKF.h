@@ -16,6 +16,7 @@
 #include <Eigen/Dense>
 #include <unsupported/Eigen/MatrixFunctions>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <map>
 #include <algorithm>
@@ -68,7 +69,7 @@ the default.
         InEKF(RobotState state, NoiseParams params, ErrorType error_type);
     /// @}
 
-    
+        ~InEKF();
     /// @name Getters
     /// @{
         /**
@@ -236,6 +237,8 @@ the default.
         void CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixXd& H, const Eigen::MatrixXd& N);
         void CorrectLeftInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixXd& H, const Eigen::MatrixXd& N);
         // void CorrectFullState(const Observation& obs); // TODO
+        std::string dTheta_out_path = "/home/tingjun/Desktop/Husky/catkin_ws/dTheta.txt";
+        std::ofstream dTheta_out;
 };
 
 } // end inekf namespace

@@ -140,7 +140,6 @@ void HuskySystem::step() {
             
             std::cout<<"State initialized."<<std::endl;
         } else {
-            
             while(!updateNextIMU()){};
             estimator_.initBias(*(imu_packet_.get()));
         }
