@@ -3,6 +3,7 @@
 #include "sensor_msgs/Imu.h"
 #include "sensor_msgs/JointState.h"
 #include "geometry_msgs/TwistStamped.h"
+#include <vector>
 
 /* Husky Data Structures For Internal Program */
 #include "utils/husky_data.hpp"
@@ -41,6 +42,9 @@ class HuskyComms {
         std::ofstream outfile_;
 
         std::thread subscribing_thread_;
+
+        std::vector<double> translation_imu;
+        std::vector<double> rotation_imu;
 
         husky_inekf::husky_data_t* husky_data_buffer_;
 };

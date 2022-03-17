@@ -380,9 +380,12 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     // double alpha = 0;
     // dTheta *= alpha;
     /// DELETE:
+    dTheta(2) = 0;
     dTheta_out << dTheta << std::endl;
-
+    // std::cout << dTheta << "\n" << std::endl;
     Eigen::VectorXd Theta_new = Theta + dTheta;
+
+    // Theta_new(5) = 0;
 
     // Set new state  
     state_.setX(X_new); 
@@ -392,6 +395,10 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     Eigen::MatrixXd IKH = Eigen::MatrixXd::Identity(dimP,dimP) - K*H;
     Eigen::MatrixXd P_new = IKH * P * IKH.transpose() + K*N*K.transpose(); // Joseph update form
 
+    P_new.row(dimP-dimTheta+2).setZero();
+    P_new.col(dimP-dimTheta+2).setZero();
+
+    P_new(dimP-dimTheta+2, dimP-dimTheta+2) = 0.0001*1;
     // Map from right invariant back to left invariant error
     if (error_type_==ErrorType::LeftInvariant) {
         Eigen::MatrixXd AdjInv = Eigen::MatrixXd::Identity(dimP,dimP);

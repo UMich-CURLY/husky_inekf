@@ -18,18 +18,26 @@ namespace husky_inekf {
         public:
             // Construct Encoder measurement
             CameraOdomMeasurement() {
-                type_ = CAMERA_ODOM;
+                type_ = CAMERA_ODOM;   
+                odom_to_imu_ = Eigen::Matrix4d::Zero();             
                 translation_ = Eigen::Vector3d::Zero();
                 rotation_ = Eigen::Matrix3d::Identity();
                 transformation_ = Eigen::Matrix4d::Identity();
             }
 
-            CameraOdomMeasurement(const nav_msgs::Odometry& camera_odom_msg){
+            CameraOdomMeasurement(const nav_msgs::Odometry& camera_odom_msg, std::vector<double> &translation, std::vector<double> &rotation){
                 type_ = CAMERA_ODOM;
                 
                 translation_ = Eigen::Vector3d::Zero();
+                odom_to_imu_ = Eigen::Matrix4d::Zero();             
+                
                 rotation_ = Eigen::Matrix3d::Identity();
                 transformation_ = Eigen::Matrix4d::Identity();
+
+                
+                setOdomToIMU(translation, rotation);
+                
+                std::cout << 222222222222222 << std::endl;
 
                 setTranslation(camera_odom_msg.pose.pose.position); // [x, y, z]
                 setRotation(camera_odom_msg.pose.pose.orientation); // [x, y, z]
@@ -55,9 +63,21 @@ namespace husky_inekf {
                 rotation_ = orientation_quat.toRotationMatrix();
             }
 
+            void setOdomToIMU(std::vector<double> &translation, std::vector<double> &rotation) {
+                Eigen::Quaternion<double> orientation_quat(rotation[0],
+                                                            rotation[1],
+                                                            rotation[2],
+                                                            rotation[3]);
+                odom_to_imu_.block<3,3>(0,0) = orientation_quat.toRotationMatrix();
+                odom_to_imu_.block<3,1>(0,3) = Eigen::Vector3d({translation[0], translation[1], translation[2]});
+
+            }
+
             void setTransformation() {
                 transformation_.block<3,3>(0,0) = rotation_;
                 transformation_.block<3,1>(0,3) = translation_;
+
+                transformation_ =  odom_to_imu_ * transformation_;
             }
 
             inline const Eigen::Matrix4d&  getTransformation() const {
@@ -71,6 +91,7 @@ namespace husky_inekf {
             Eigen::Vector3d translation_;
             Eigen::Matrix3d rotation_;
             Eigen::Matrix4d transformation_;
+            Eigen::Matrix4d odom_to_imu_;
     };
 
     typedef std::shared_ptr<CameraOdomMeasurement> CameraOdomMeasurementPtr;

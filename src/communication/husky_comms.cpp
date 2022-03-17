@@ -18,6 +18,12 @@ HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_da
     // Velocity Type:
     nh_->param<int>("/settings/velocity_type", velocity_type, 1);
 
+    // Odom To IMU frame:
+
+    nh_->param<std::vector<double>>("settings/translation", translation_imu, std::vector<double>({0, 0, 0, 0}));
+    nh_->param<std::vector<double>>("settings/rotation", rotation_imu, std::vector<double>({0, 0, 0, 1}));
+
+
     std::cout<<"husky comms nh namespace: "<<ros::this_node::getNamespace()<<std::endl;
 
     std::cout<<"subscribing to: "<<imu_topic<<joint_topic<<", and "<<velocity_topic << std::endl;
@@ -136,7 +142,8 @@ void HuskyComms::GPSvelocityCallback(const geometry_msgs::TwistStamped& vel_msg)
 }
 
 void HuskyComms::CameraOdomCallBack(const nav_msgs::Odometry& camera_odom_msg) {
-    auto camera_odom_ptr = std::make_shared<husky_inekf::CameraOdomMeasurement>(camera_odom_msg);
+    std::cout << "I am here!" << std::endl;
+    auto camera_odom_ptr = std::make_shared<husky_inekf::CameraOdomMeasurement>(camera_odom_msg, translation_imu, rotation_imu);
     
     // We need two odometry data to calculate the velocity
     if (husky_data_buffer_ -> camera_odom_q.empty()) {
