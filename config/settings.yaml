@@ -10,8 +10,8 @@ settings:
   enable_kinematics: true
   flat_ground: false
 
-  velocity_type: 1 # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
-  velocity_topic: "/joint_states" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
+  velocity_type: 3 # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
+  velocity_topic: "/zed_node/odom" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
 
   # Body Estimator
   estimator_publish_visualization_markers: true
@@ -35,5 +35,9 @@ settings:
 
   # odom_to_imu
   # Husky:
-  translation:  [-66.465, 28.652, 0.132]
-  roataion: [0.000, 0.000, -0.471, 0.882] # Quaternion
+  # translation:  [-66.465, 28.652, 0.132]
+  # roataion: [0.000, 0.000, -0.471, 0.882] # Quaternion
+
+  # Carla:
+  translation: [0, 0, 0]
+  rotation: [0, 0, 0, 1]

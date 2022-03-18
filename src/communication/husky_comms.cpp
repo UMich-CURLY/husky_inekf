@@ -142,7 +142,6 @@ void HuskyComms::GPSvelocityCallback(const geometry_msgs::TwistStamped& vel_msg)
 }
 
 void HuskyComms::CameraOdomCallBack(const nav_msgs::Odometry& camera_odom_msg) {
-    std::cout << "I am here!" << std::endl;
     auto camera_odom_ptr = std::make_shared<husky_inekf::CameraOdomMeasurement>(camera_odom_msg, translation_imu, rotation_imu);
     
     // We need two odometry data to calculate the velocity

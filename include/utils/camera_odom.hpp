@@ -10,6 +10,7 @@
 #include <string>
 #include <memory>
 #include <Eigen/Geometry> 
+#include <Eigen/Dense>
 
 
 namespace husky_inekf {
@@ -19,7 +20,7 @@ namespace husky_inekf {
             // Construct Encoder measurement
             CameraOdomMeasurement() {
                 type_ = CAMERA_ODOM;   
-                odom_to_imu_ = Eigen::Matrix4d::Zero();             
+                odom_to_imu_ = Eigen::Matrix4d::Identity();             
                 translation_ = Eigen::Vector3d::Zero();
                 rotation_ = Eigen::Matrix3d::Identity();
                 transformation_ = Eigen::Matrix4d::Identity();
@@ -28,17 +29,16 @@ namespace husky_inekf {
             CameraOdomMeasurement(const nav_msgs::Odometry& camera_odom_msg, std::vector<double> &translation, std::vector<double> &rotation){
                 type_ = CAMERA_ODOM;
                 
+
                 translation_ = Eigen::Vector3d::Zero();
-                odom_to_imu_ = Eigen::Matrix4d::Zero();             
+
+                odom_to_imu_ = Eigen::Matrix4d::Identity();             
                 
                 rotation_ = Eigen::Matrix3d::Identity();
-                transformation_ = Eigen::Matrix4d::Identity();
-
+                transformation_ = Eigen::Matrix4d::Identity();                
                 
                 setOdomToIMU(translation, rotation);
                 
-                std::cout << 222222222222222 << std::endl;
-
                 setTranslation(camera_odom_msg.pose.pose.position); // [x, y, z]
                 setRotation(camera_odom_msg.pose.pose.orientation); // [x, y, z]
                 setHeader(camera_odom_msg.header);
@@ -64,11 +64,14 @@ namespace husky_inekf {
             }
 
             void setOdomToIMU(std::vector<double> &translation, std::vector<double> &rotation) {
+                
                 Eigen::Quaternion<double> orientation_quat(rotation[0],
                                                             rotation[1],
                                                             rotation[2],
                                                             rotation[3]);
+                
                 odom_to_imu_.block<3,3>(0,0) = orientation_quat.toRotationMatrix();
+
                 odom_to_imu_.block<3,1>(0,3) = Eigen::Vector3d({translation[0], translation[1], translation[2]});
 
             }
@@ -76,11 +79,12 @@ namespace husky_inekf {
             void setTransformation() {
                 transformation_.block<3,3>(0,0) = rotation_;
                 transformation_.block<3,1>(0,3) = translation_;
-
-                transformation_ =  odom_to_imu_ * transformation_;
+                
+                transformation_.transpose() *=  odom_to_imu_.transpose();
             }
 
             inline const Eigen::Matrix4d&  getTransformation() const {
+
                 return transformation_;
             }
 
