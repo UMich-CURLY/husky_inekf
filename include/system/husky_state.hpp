@@ -50,6 +50,7 @@ class HuskyState {
         void setBaseRotation(const Eigen::Matrix3d& R);
         void setBasePosition(const Eigen::Vector3d& p);
         void setBaseVelocity(const Eigen::Vector3d& v);
+        void setImuBias(const Eigen::VectorXd& bias);
         void clear();
 
         Eigen::Matrix<double,10,1> q() const;
@@ -66,6 +67,8 @@ class HuskyState {
 //         Eigen::Matrix<double,4,1> getGRF() const;
         Eigen::Vector3d getAngularVelocity() const;
         Eigen::Vector3d getBodyVelocity() const;
+        Eigen::Vector3d getWorldVelocity() const;
+        Eigen::VectorXd getImuBias() const;
         
         // Extract robot pose:
         double x() const;
@@ -102,6 +105,7 @@ class HuskyState {
         double time_stamp_;
         Eigen::Matrix<double, 10,1> q_;
         Eigen::Matrix<double, 10,1> dq_;
+        Eigen::Matrix<double, 6,1> imu_bias_;
         Eigen::Matrix<double,4,1> GRF_; //!< ground reaction force
 };
 

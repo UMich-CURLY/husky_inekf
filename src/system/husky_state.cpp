@@ -71,10 +71,22 @@ void HuskyState::setBaseVelocity(const Eigen::Vector3d& v) {
     dq_.segment<3>(0) = v;
 }
 
+void HuskyState::setImuBias(const Eigen::VectorXd& bias){
+    imu_bias_ = bias;
+}
+
 Eigen::Vector3d HuskyState::getBodyVelocity() const { 
     Eigen::Vector3d v_world = dq_.segment<3>(0);
     Eigen::Matrix3d Rwb = this->getRotation();
     return Rwb.transpose() * v_world;
+}
+
+Eigen::Vector3d HuskyState::getWorldVelocity() const{
+    return dq_.segment<3>(0);
+}
+
+Eigen::VectorXd HuskyState::getImuBias() const{
+    return imu_bias_;
 }
 
 // Extract each DOF position by name

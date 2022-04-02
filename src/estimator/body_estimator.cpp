@@ -94,9 +94,11 @@ void BodyEstimator::propagateIMU(const ImuMeasurement<double>& imu_packet_in, Hu
     Eigen::Matrix3d R = estimate.getRotation();
     Eigen::Vector3d p = estimate.getPosition();
     Eigen::Vector3d v = estimate.getVelocity();
+    Eigen::Vector3d bias = estimate.getTheta();
     state.setBaseRotation(R);
     state.setBasePosition(p);
     state.setBaseVelocity(v); 
+    state.setImuBias(bias);
     state.setTime(t);
 
     // Store previous imu data
@@ -126,10 +128,12 @@ void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_pac
         Eigen::Matrix3d R = estimate.getRotation(); 
         Eigen::Vector3d p = estimate.getPosition();
         Eigen::Vector3d v = estimate.getVelocity();
+        Eigen::Vector3d bias = estimate.getTheta();
         
         state.setBaseRotation(R);
         state.setBasePosition(p);
         state.setBaseVelocity(v); 
+        state.setImuBias(bias);
         state.setTime(t);
     }
     else{
@@ -153,6 +157,7 @@ void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_i
         Eigen::Matrix3d R = estimate.getRotation(); 
         Eigen::Vector3d p = estimate.getPosition();
         Eigen::Vector3d v = estimate.getVelocity();
+        Eigen::Vector3d bias = estimate.getTheta();
 
         /// DELETE:
         Eigen::Vector3d gyro_bias = estimate.getGyroscopeBias();
@@ -165,6 +170,7 @@ void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_i
         state.setBaseRotation(R);
         state.setBasePosition(p);
         state.setBaseVelocity(v); 
+        state.setImuBias(bias);
         state.setTime(t);
     }
     else{
@@ -293,7 +299,7 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
 
     R0 = Eigen::Matrix3d::Identity();
     inekf::RobotState initial_state; 
-
+    
     initial_state.setRotation(R0);
     initial_state.setVelocity(v0);
     initial_state.setPosition(p0);
