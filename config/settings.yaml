@@ -1,6 +1,6 @@
 settings:
   initialize_state_from_first_observation: false
-  imu_topic: "/carla/ego_vehicle/imu" # "/gx5_0/imu/data", "/carla/ego_vehicle/imu"
+  imu_topic: "/gx5_0/imu/data" # "/gx5_0/imu/data", "/carla/ego_vehicle/imu" # "imu_with_noise"
   joint_topic: "/joint_states"
   map_frame_id : "/odom"
   base_frame_id: "/husky/imu" 
@@ -10,25 +10,27 @@ settings:
   enable_kinematics: true
   flat_ground: false
 
-  velocity_type: 3  # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
-  velocity_topic: "/carla/ego_vehicle/odometry" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry"
+  velocity_type: 1  # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
+  velocity_topic: "/joint_states" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry"
 
   # Body Estimator
   estimator_publish_visualization_markers: true
   estimator_enable_debug: false
-  estimator_static_bias_initialization: true
+  estimator_static_bias_initialization: false
   estimator_velocity_time_threshold: 0.5
 
   # Husky System
   system_enable_pose_publisher: true
   system_enable_pose_logger: true
-  system_log_pose_skip: 10
-  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_kitti.txt"
-  system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_camera_odom_test.txt"
-  system_velocity_type: 1
+  system_log_pose_skip: 1
+  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/husky_inekf_pose_kitti.txt"
+  system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/husky_inekf_pose_tum.txt"
+  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/vel_est.txt"
+  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/bias_est.txt"
+  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/vel_input.txt"
 
   # Path Publisher
   pose_topic: "/husky/inekf_estimation/pose"
   path_topic: "/husky/inekf_estimation/path"
   publish_rate: 1000
-  pose_skip: 10
+  pose_skip: 1

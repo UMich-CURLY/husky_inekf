@@ -165,7 +165,6 @@ Eigen::MatrixXd InEKF::StateTransitionMatrix(Eigen::Vector3d& w, Eigen::Vector3d
         - ((6*thetadt2+16*costhetadt-cos2thetadt-15)/(8*theta6))*(wx2*ax*wx)
         + ((4*thetadt3+6*thetadt-24*sinthetadt-3*sin2thetadt+24*thetadtcosthetadt)/(24*theta7))*(wx2*ax*wx2) );
 
-    
     // TODO: Get better approximation using taylor series when theta < tol
     const double tol =  1e-6;
     if (theta < tol) {
@@ -245,6 +244,72 @@ Eigen::MatrixXd InEKF::DiscreteNoiseMatrix(Eigen::MatrixXd& Phi, double dt){
     return Qd;
 }
 
+// InEKF Propagation - Inertial Data
+void InEKF::SimplifiedPropagate(const Eigen::Matrix<double,6,1>& m, double dt) {
+
+    Eigen::Vector3d w = m.head(3) - state_.getGyroscopeBias();    // Angular Velocity
+    Eigen::Vector3d a = m.tail(3) - state_.getAccelerometerBias(); // Linear Acceleration
+    
+    Eigen::MatrixXd X = state_.getX();
+    Eigen::MatrixXd P = state_.getP();
+
+    // Extract State
+    Eigen::Matrix3d R = state_.getRotation();
+    Eigen::Vector3d v = state_.getVelocity();
+    Eigen::Vector3d p = state_.getPosition();
+
+    // Strapdown IMU motion model
+    Eigen::Vector3d phi = w*dt; 
+    Eigen::Matrix3d R_pred = R * Exp_SO3(phi);
+    Eigen::Vector3d v_pred = v + (R*a + g_)*dt;
+    Eigen::Vector3d p_pred = p + v*dt + 0.5*(R*a + g_)*dt*dt;
+
+    // Set new state (bias has constant dynamics)
+    state_.setRotation(R_pred);
+    state_.setVelocity(v_pred);
+    state_.setPosition(p_pred);
+
+    // ---- Linearized invariant error dynamics -----
+    int dimX = state_.dimX();
+    int dimP = state_.dimP();
+    int dimTheta = state_.dimTheta();
+    Eigen::MatrixXd A = Eigen::MatrixXd::Zero(dimP,dimP);
+    // Inertial terms
+    A.block<3,3>(3,0) = skew(g_); // TODO: Efficiency could be improved by not computing the constant terms every time
+    A.block<3,3>(6,3) = Eigen::Matrix3d::Identity();
+    // Bias terms
+    A.block<3,3>(0,dimP-dimTheta) = -R;
+    A.block<3,3>(3,dimP-dimTheta+3) = -R;
+    for (int i=3; i<dimX; ++i) {
+        A.block<3,3>(3*i-6,dimP-dimTheta) = -skew(X.block<3,1>(0,i))*R;
+    } 
+
+    // Noise terms
+    Eigen::MatrixXd Qk = Eigen::MatrixXd::Zero(dimP,dimP); // Landmark noise terms will remain zero
+    Qk.block<3,3>(0,0) = noise_params_.getGyroscopeCov(); 
+    Qk.block<3,3>(3,3) = noise_params_.getAccelerometerCov();
+    for(map<int,int>::iterator it=estimated_contact_positions_.begin(); it!=estimated_contact_positions_.end(); ++it) {
+        Qk.block<3,3>(3+3*(it->second-3),3+3*(it->second-3)) = noise_params_.getContactCov(); // Contact noise terms
+    }
+    Qk.block<3,3>(dimP-dimTheta,dimP-dimTheta) = noise_params_.getGyroscopeBiasCov();
+    Qk.block<3,3>(dimP-dimTheta+3,dimP-dimTheta+3) = noise_params_.getAccelerometerBiasCov();
+
+    // Discretization
+    Eigen::MatrixXd I = Eigen::MatrixXd::Identity(dimP,dimP);
+    Eigen::MatrixXd Phi = I + A*dt; // Fast approximation of exp(A*dt). TODO: explore using the full exp() instead
+    Eigen::MatrixXd Adj = I;
+    Adj.block(0,0,dimP-dimTheta,dimP-dimTheta) = Adjoint_SEK3(X); // Approx 200 microseconds
+    Eigen::MatrixXd PhiAdj = Phi * Adj;
+    Eigen::MatrixXd Qk_hat = PhiAdj * Qk * PhiAdj.transpose() * dt; // Approximated discretized noise matrix (faster by 400 microseconds)
+
+    // Propagate Covariance
+    Eigen::MatrixXd P_pred = Phi * P * Phi.transpose() + Qk_hat;
+
+    // Set new covariance
+    state_.setP(P_pred);
+
+    return;
+}
 
 // InEKF Propagation - Inertial Data
 void InEKF::Propagate(const Eigen::Matrix<double,6,1>& imu, double dt) {
@@ -318,10 +383,16 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     int dimP = state_.dimP();
 
     // Remove bias
-    Theta = Eigen::Matrix<double,6,1>::Zero();
-    P.block<6,6>(dimP-dimTheta,dimP-dimTheta) = 0.0001*Eigen::Matrix<double,6,6>::Identity();
-    P.block(0,dimP-dimTheta,dimP-dimTheta,dimTheta) = Eigen::MatrixXd::Zero(dimP-dimTheta,dimTheta);
-    P.block(dimP-dimTheta,0,dimTheta,dimP-dimTheta) = Eigen::MatrixXd::Zero(dimTheta,dimP-dimTheta);
+    // Theta = Eigen::Matrix<double,6,1>::Zero();
+    // P.block<6,6>(dimP-dimTheta,dimP-dimTheta) = 0.0001*Eigen::Matrix<double,6,6>::Identity();
+    // P.block(0,dimP-dimTheta,dimP-dimTheta,dimTheta) = Eigen::MatrixXd::Zero(dimP-dimTheta,dimTheta);
+    // P.block(dimP-dimTheta,0,dimTheta,dimP-dimTheta) = Eigen::MatrixXd::Zero(dimTheta,dimP-dimTheta);
+    
+    // remove yaw bias
+    Theta(2) = 0;
+    P(dimP-dimTheta+2,dimP-dimTheta+2) = 0.0001*1;
+    P.block(0,dimP-dimTheta+2,dimP-dimTheta,1) = Eigen::MatrixXd::Zero(dimP-dimTheta,1);
+    P.block(dimP-dimTheta+2,0,1,dimP-dimTheta) = Eigen::MatrixXd::Zero(1,dimP-dimTheta);
     // std::cout << "P:\n" << P << std::endl;
     // std::cout << state_ << std::endl;
 
@@ -336,11 +407,14 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     Eigen::MatrixXd PHT = P * H.transpose();
     Eigen::MatrixXd S = H * PHT + N;
     Eigen::MatrixXd K = PHT * S.inverse();
-
+    // std::cout<<K<<std::endl;
+    // std::cout<<"--------"<<std::endl;
     // Compute state correction vector
     Eigen::VectorXd delta = K*Z;
     Eigen::MatrixXd dX = Exp_SEK3(delta.segment(0,delta.rows()-dimTheta));
     Eigen::VectorXd dTheta = delta.segment(delta.rows()-dimTheta, dimTheta);
+
+    dTheta(2) = 0;
 
     // Update state
     Eigen::MatrixXd X_new = dX*X; // Right-Invariant Update
@@ -353,7 +427,7 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     // Update Covariance
     Eigen::MatrixXd IKH = Eigen::MatrixXd::Identity(dimP,dimP) - K*H;
     Eigen::MatrixXd P_new = IKH * P * IKH.transpose() + K*N*K.transpose(); // Joseph update form
-
+    
     // Map from right invariant back to left invariant error
     if (error_type_==ErrorType::LeftInvariant) {
         Eigen::MatrixXd AdjInv = Eigen::MatrixXd::Identity(dimP,dimP);
@@ -878,8 +952,11 @@ void InEKF::CorrectVelocity(const Eigen::Vector3d& measured_velocity, const Eige
 
 
     int startIndex = Z.rows();
+    // std::cout<<"Z before: "<<Z.rows()<<", "<<Z.cols()<<std::endl;
     Z.conservativeResize(startIndex+3, Eigen::NoChange);
-    Z.segment(0,3) = R*measured_velocity - v; 
+    // std::cout<<"Z before: "<<Z.rows()<<", "<<Z.cols()<<std::endl;
+    Z.segment(0,3) = R*measured_velocity - v;  
+    // std::cout<<Z<<std::endl;
 
 
     // Correct state using stacked observation

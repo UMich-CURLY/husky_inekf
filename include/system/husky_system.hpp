@@ -57,9 +57,6 @@ class HuskySystem {
 
         int velocity_type_;
 
-        std::ofstream outfile_;
-        std::ofstream tum_outfile_;
-
         // Update most recent packet to use
         bool updateNextIMU();
         bool updateNextJointState();
@@ -70,6 +67,16 @@ class HuskySystem {
         // Output file
         std::string file_name_;
         std::string tum_file_name_;
+        std::string vel_est_file_name_;     // the velocity estimated by the filter
+        std::string bias_est_file_name_;
+        std::string vel_input_file_name_;   // the velocity used in correction step
+
+        std::ofstream outfile_;
+        std::ofstream tum_outfile_;
+        std::ofstream vel_est_outfile_;
+        std::ofstream bias_est_outfile_;
+        std::ofstream vel_input_outfile_;
+
         // Publish path node enable flag
         bool enable_pose_publisher_;
         bool enable_pose_logger_;

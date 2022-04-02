@@ -60,6 +60,18 @@ namespace husky_inekf {
                     imu_msg.linear_acceleration.z
                 };
 
+                // angular_velocity = {    
+
+                //     -imu_msg.angular_velocity.y,
+                //     -imu_msg.angular_velocity.x,
+                //     -imu_msg.angular_velocity.z 
+                // };
+                // linear_acceleration = {
+                //     -imu_msg.linear_acceleration.y,
+                //     -imu_msg.linear_acceleration.x,
+                //     -imu_msg.linear_acceleration.z
+                // };
+
                 setHeader(imu_msg.header);
 
                 type_ = IMU;

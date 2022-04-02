@@ -173,6 +173,7 @@ the default.
         void KeepLandmarks(const std::vector<int> landmark_ids);
     /// @}
 
+        void SimplifiedPropagate(const Eigen::Matrix<double,6,1>& m, double dt);
 
     /// @name Propagation and Correction Methods
     /// @{
@@ -216,7 +217,7 @@ the default.
      */
 
     private:
-        ErrorType error_type_ = ErrorType::LeftInvariant; 
+        ErrorType error_type_ = ErrorType::RightInvariant; 
         bool estimate_bias_ = true;  
         RobotState state_;
         NoiseParams noise_params_;

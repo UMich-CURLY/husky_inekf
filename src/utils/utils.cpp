@@ -83,14 +83,18 @@ Eigen::Vector3d  AngularVelocity2EulerRates(const Eigen::Vector3d& euler, const 
     return eulerRates;
 }
 
-// Computes skew-symmetric matrix from Vector3d
 Eigen::Matrix3d skew(const Eigen::Vector3d& v) {
-	Eigen::Matrix3d A = Eigen::Matrix3d::Zero();
-	A(0,1) = -v(2);
-	A(1,0) = v(2);
-	A(0,2) = v(1);
-	A(2,0) = -v(1);
-	A(1,2) = -v(0);
-	A(2,1) = v(0);
-	return A;
+    // Convert vector to skew-symmetric matrix
+    Eigen::Matrix3d M = Eigen::Matrix3d::Zero();
+    M << 0, -v[2], v[1],
+         v[2], 0, -v[0], 
+        -v[1], v[0], 0;
+        return M;
+}
+
+Eigen::Vector3d unskew(const Eigen::Matrix3d& M) {
+    // Convert skew-symmetric matrix to vector
+    Eigen::Vector3d v = Eigen::Vector3d::Zero();
+    v << M(2,1), M(0,2), M(1,0);
+        return v;
 }

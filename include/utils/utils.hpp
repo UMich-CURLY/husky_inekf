@@ -25,5 +25,6 @@ Eigen::Vector3d AngularVelocity2EulerRates(const Eigen::Vector3d& euler, const E
 Eigen::Vector3d EulerRates2AngularVelocity(const Eigen::Vector3d& euler, const Eigen::Vector3d& euler_rates);
 // Computes skew-symmetric matrix from Vector3d
 Eigen::Matrix3d skew(const Eigen::Vector3d& v);
+Eigen::Vector3d unskew(const Eigen::Matrix3d& M);
 
 #endif // UTILS_H

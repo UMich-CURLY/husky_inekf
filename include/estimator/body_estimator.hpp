@@ -4,6 +4,8 @@
 
 #include <Eigen/Dense>
 #include <vector>
+#include <iostream>
+#include <fstream>
 #include "ros/ros.h"
 #include "utils/husky_data.hpp"
 #include "system/husky_state.hpp"
@@ -20,6 +22,7 @@ class BodyEstimator {
     public:
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         BodyEstimator();
+        ~BodyEstimator();
         bool enabled();
         void enableFilter();
         void disable();
@@ -55,6 +58,9 @@ class BodyEstimator {
         Eigen::Matrix<double,6,1> imu_prev_;
         // const Eigen::Matrix<double,4,4> encoder_cov_ = 0.0174533*0.0174533 * Eigen::Matrix<double,4,4>::Identity(); // 1 deg std dev 
         Eigen::Matrix<double,3,3> velocity_cov_; // covariance of velocity measuremnts from wheel velocity.
+        Eigen::Matrix3d R_imu_body_;    // fixed rotation that takes imu to body frame.
+
+        std::ofstream imu_outfile_;
 };
 
 } // end husky_inekf namespace

@@ -32,6 +32,13 @@ Eigen::Matrix3d skew(const Eigen::Vector3d& v) {
         return M;
 }
 
+Eigen::Vector3d unskew(const Eigen::Matrix3d& M) {
+    // Convert skew-symmetric matrix to vector
+    Eigen::Vector3d v = Eigen::Vector3d::Zero();
+    v << -M(1,2), M(0,2), -M(0,1);
+        return v;
+}
+
 Eigen::Matrix3d Gamma_SO3(const Eigen::Vector3d& w, int m) {
     // Computes mth integral of the exponential map: \Gamma_m = \sum_{n=0}^{\infty} \dfrac{1}{(n+m)!} (w^\wedge)^n
     assert(m>=0);
