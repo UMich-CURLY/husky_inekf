@@ -201,7 +201,13 @@ void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
                                        imu_packet_in.orientation.x,
                                        imu_packet_in.orientation.y,
                                        imu_packet_in.orientation.z); 
-        Eigen::Matrix3d R = quat.toRotationMatrix();
+        // Eigen::Matrix3d R = quat.toRotationMatrix();
+        // Eigen::Matrix3d R_imu_body;
+        // R_imu_body<<0,-1,0,
+        //             -1,0,0,
+        //             0,0,-1;
+        // R = R*R_imu_body;
+        Eigen::Matrix3d R = Eigen::Matrix3d::Identity();
         Eigen::Vector3d g; g << 0,0,-9.81;
         a = (R.transpose()*(R*a + g)).eval();
         Eigen::Matrix<double,6,1> v; 

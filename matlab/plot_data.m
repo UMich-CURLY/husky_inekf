@@ -2,13 +2,13 @@
 
 %%
 clear
-vel_in = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/vel_input.txt");
-bias_est = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/bias_est.txt");
-vel_est = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/vel_est.txt");
+vel_in = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/21-15_data_yaw_update/vel_input.txt");
+bias_est = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/21-15_data_yaw_update/bias_est.txt");
+vel_est = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/21-15_data_yaw_update/vel_est.txt");
 % gt_pose = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/gt.txt");
-est_pose = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/husky_inekf_pose_tum.txt");
+est_pose = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/21-15_data_yaw_update/husky_inekf_pose_tum_yaw_update.txt");
 t = est_pose(:,1);
-imu = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/imu.txt");
+imu = load("/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/21-15_data_yaw_update/imu.txt");
 
 
 
