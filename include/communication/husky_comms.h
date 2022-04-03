@@ -38,6 +38,7 @@ class HuskyComms {
         ros::Subscriber imu_sub_;
         ros::Subscriber joint_sub_;
         ros::Subscriber vel_sub_;
+        ros::Subscriber odom_record_sub_;
 
         std::ofstream outfile_;
 
@@ -47,4 +48,5 @@ class HuskyComms {
         std::vector<double> rotation_imu;
 
         husky_inekf::husky_data_t* husky_data_buffer_;
+
 };

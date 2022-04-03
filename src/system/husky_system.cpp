@@ -33,8 +33,11 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
 }
 
 HuskySystem::~HuskySystem(){
+    std::cout << "Ready to close Husky system" << std::endl;
     outfile_.close();
     tum_outfile_.close();
+    std::cout << "Successfully closed Husky system" << std::endl;
+
 }
 
 void HuskySystem::step() {

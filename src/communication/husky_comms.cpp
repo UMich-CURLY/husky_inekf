@@ -19,22 +19,14 @@ HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_da
     nh_->param<int>("/settings/velocity_type", velocity_type, 1);
 
     // Odom To IMU frame:
-
     nh_->param<std::vector<double>>("settings/translation", translation_imu, std::vector<double>({0, 0, 0, 0}));
     nh_->param<std::vector<double>>("settings/rotation", rotation_imu, std::vector<double>({0, 0, 0, 1}));
 
-
     std::cout<<"husky comms nh namespace: "<<ros::this_node::getNamespace()<<std::endl;
 
-    std::cout<<"subscribing to: "<<imu_topic<<joint_topic<<", and "<<velocity_topic << std::endl;
+    std::cout<<"subscribing to: "<< imu_topic << joint_topic<<", and "<<velocity_topic << std::endl;
     // Initialize subscribers with queue size of 1000
     imu_sub_ = nh_->subscribe(imu_topic, 1000, &HuskyComms::imuCallback, this);
-    
-    // joint_sub_ = nh_->subscribe(joint_topic, 1000, &HuskyComms::jointStateCallback, this);
-
-    // vel_sub_ = nh_->subscribe(velocity_topic, 1000, &HuskyComms::GPSvelocityCallback, this);
-
-    // MeasurementType velocity_type = JOINT_STATE;
 
     switch(velocity_type) {
         case 1: // JOINT_STATE
@@ -132,9 +124,6 @@ void HuskyComms::jointStateVelocityCallback(const sensor_msgs::JointState& joint
         husky_data_buffer_ -> velocity_q.push(vel_ptr);
         
     }
-    
-    // std::cout<<husky_data_buffer_ -> velocity_q.size()<<std::endl;
-    // std::cout<<"joint state size: "<<husky_data_buffer_->joint_state_q.size()<<std::endl;
 }
 
 

@@ -28,6 +28,11 @@
       <!-- <param name="file_name" value="/media/curly_ssd_justin/code/minicheetah-perception/catkin_ws/src/cheetah_inekf_lcm/data/08292020_trail1_gt_2.txt"/> -->
     </node>
 
+    <!-- <node name="InEKF_pathmap_litsener" pkg="husky_inekf" type="pathmap_litsener_node" output="screen"/> -->
+    <node name="InEKF_pathodom_litsener" pkg="husky_inekf" type="pathodom_listener_node" output="screen"/>
+    <node name="InEKF_gps_litsener" pkg="husky_inekf" type="gps_listener_node" output="screen"/>
+
+
 
     
     <!-- <node type="rviz" name="rviz" pkg="rviz">

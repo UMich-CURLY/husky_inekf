@@ -11,7 +11,7 @@ settings:
   flat_ground: false
 
   velocity_type: 1 # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
-  velocity_topic: "/joint_states" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
+  velocity_topic: "joint_states" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
 
   # Body Estimator
   estimator_publish_visualization_markers: true
@@ -35,9 +35,19 @@ settings:
 
   # odom_to_imu
   # Husky:
-  translation:  [-66.465, 28.652, 0.132]
-  roataion: [0.000, 0.000, -0.471, 0.882] # Quaternion
+  # translation:  [-66.465, 28.652, 0.132]
+  # roataion: [0.000, 0.000, -0.471, 0.882] # Quaternion
+
+  # Recording flag:
+  # record_path_map: false
+  # path_map_topic: "zed_node/path_map"
+  # record_path_odom: false
+  # path_odom_topic: "zed_node/path_odom"
+  # record_odom: true
+  # odom_topic: "/odometry/filtered/output"
+  # odom_tum_filename: "/home/tingjun/Desktop/Husky/catkin_ws/src/husky_inekf/data/odom_pose_tum.txt"
+  # record_imu: false
 
   # Carla:
-  # translation: [0, 0, 0]
-  # rotation: [0, 0, 0, 1]
+  translation: [0, 0, 0]
+  rotation: [0, 0, 0, 1]

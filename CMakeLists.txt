@@ -109,3 +109,15 @@ target_link_libraries(path_publisher_node
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
 )
+
+add_executable(pathodom_listener_node "${PROJECT_SOURCE_DIR}/src/communication/pathodom_listener_node.cpp")
+target_link_libraries(pathodom_listener_node
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES}
+)
+
+add_executable(gps_listener_node "${PROJECT_SOURCE_DIR}/src/communication/gps_listener_node.cpp")
+target_link_libraries(gps_listener_node
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES}
+)
