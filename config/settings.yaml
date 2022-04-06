@@ -10,8 +10,8 @@ settings:
   enable_kinematics: true
   flat_ground: false
 
-  velocity_type: 1 # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
-  velocity_topic: "/joint_states" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
+  velocity_type: 3 # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
+  velocity_topic: "/zed_node/odom" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
 
   # Body Estimator
   estimator_publish_visualization_markers: true
@@ -23,13 +23,13 @@ settings:
   system_enable_pose_publisher: true
   system_enable_pose_logger: true
   system_enable_debug_logger: true
-  system_log_pose_skip: 1
-  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/husky_inekf_pose_kitti.txt"
-  system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/husky_inekf_pose_tum.txt"
-  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/vel_est.txt"
-  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/bias_est.txt"
-  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/vel_input.txt"
-  system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/3floor_data/imu.txt"
+  system_log_pose_skip: 0
+  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_kitti.txt"
+  system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_tum.txt"
+  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/vel_est.txt"
+  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/bias_est.txt"
+  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/vel_input.txt"
+  system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/imu.txt"
   system_velocity_type: 1
 
   # Path Publisher

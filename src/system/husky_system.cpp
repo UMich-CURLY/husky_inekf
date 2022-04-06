@@ -47,6 +47,7 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     // nh_->param<int>("/settings/system_velocity_type", velocity_type_, 0);
 
     last_imu_time_ = 0;
+    skip_count_ = 0;
 }
 
 HuskySystem::~HuskySystem(){
@@ -132,6 +133,7 @@ void HuskySystem::step() {
         }        
 
         if (enable_pose_logger_ && new_pose_ready_){
+                // std::cout<<"logging poses"<<std::endl;
                 logPoseTxt(state_);
         }
 
@@ -184,10 +186,11 @@ void HuskySystem::step() {
 }
 
 void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
-    
+    // std::cout<<"before counting"<<std::endl;
     if (skip_count_ == 0) {
         // ROS_INFO_STREAM("write new pose\n");
         double t = state_.getTime();
+
 
         // log pose kitti style
         outfile_ << "1 0 0 "<< state_.x() <<" 0 1 0 "<< state_.y() <<" 0 0 1 "<< state_.z() <<std::endl<<std::flush;
@@ -210,6 +213,7 @@ void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
     }
     else {
         skip_count_--;
+        // std::cout<<"skipping--"<<std::endl;
     }
     
     

@@ -18,6 +18,8 @@ BodyEstimator::BodyEstimator() :
     nh.param<bool>("/settings/estimator_static_bias_initialization", static_bias_initialization_, false);
 
     nh.param<double>("/settings/estimator_velocity_time_threshold",velocity_t_thres_,0.1);
+    
+    
 
     inekf::NoiseParams params;
     double std;
@@ -39,13 +41,21 @@ BodyEstimator::BodyEstimator() :
     else{
         velocity_cov_ = 0.05 * 0.05 * Eigen::Matrix<double,3,3>::Identity();
     }
-    
-    
+
     filter_.setNoiseParams(params);
+    
     std::cout << "Noise parameters are initialized to: \n";
     std::cout << filter_.getNoiseParams() << std::endl;
     std::cout << "Velocity covariance is initialzed to: \n";
     std::cout << velocity_cov_ <<std::endl;
+    
+    // load bias prior
+    std::vector<double> bg0, ba0;
+    nh.param<std::vector<double>>("/prior/gyroscope_bias", bg0, std::vector<double>({0, 0, 0}));
+    nh.param<std::vector<double>>("/prior/accelerometer_bias", ba0, std::vector<double>({0, 0, 0}));
+    
+    bg0_ << bg0[0], bg0[1], bg0[2];
+    ba0_ << ba0[0], ba0[1], ba0[2];
 }
 
 BodyEstimator::~BodyEstimator() {
@@ -185,7 +195,9 @@ void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_i
 void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
     if (!static_bias_initialization_) {
         bias_initialized_ = true;
-        std::cout<<"Bias inialization is set to false. Skipping bias initialization..."<<std::endl;
+        std::cout<<"Bias inialization is set to false."<<std::endl;
+        std::cout<<"Bias is initialized using prior as: \n"<<bg0_<<std::endl;
+        std::cout<<ba0_<<std::endl;
         return;
     }
     // Initialize bias based on imu orientation and static assumption
