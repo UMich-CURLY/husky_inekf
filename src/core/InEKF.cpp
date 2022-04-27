@@ -379,7 +379,7 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     /// CHANGEBACK: remember to change the factor back to 1:
     // double alpha = 0;
     // dTheta *= alpha;
-    /// DELETE:
+    /// REMARK: set yaw bias derivative estimation to 0
     dTheta(2) = 0;
     // dTheta_out << dTheta << std::endl;
     // std::cout << dTheta << "\n" << std::endl;
