@@ -16,7 +16,7 @@ settings:
   # Body Estimator
   estimator_publish_visualization_markers: true
   estimator_enable_debug: false
-  estimator_static_bias_initialization: false
+  estimator_static_bias_initialization: true
   estimator_velocity_time_threshold: 0.5
 
   # Husky System
@@ -37,17 +37,6 @@ settings:
   # Husky:
   # translation:  [-66.465, 28.652, 0.132]
   # roataion: [0.000, 0.000, -0.471, 0.882] # Quaternion
-
-  # Recording flag:
-  # record_path_map: false
-  # path_map_topic: "zed_node/path_map"
-  # record_path_odom: false
-  # path_odom_topic: "zed_node/path_odom"
-  # record_odom: true
-  # odom_topic: "/odometry/filtered/output"
-  # odom_tum_filename: "/home/tingjun/Desktop/Husky/catkin_ws/src/husky_inekf/data/odom_pose_tum.txt"
-  # record_imu: false
-
   # Carla:
   translation: [0, 0, 0]
   rotation: [0, 0, 0, 1]

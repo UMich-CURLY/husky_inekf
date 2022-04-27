@@ -13,9 +13,9 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     nh_(nh), husky_data_buffer_(husky_data_buffer), pose_publisher_node_(nh), new_pose_ready_(false) {
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
-        "/media/jetson256g/data/inekf_result/husky_inekf_pose.txt");
+        "/home/tingjun/Desktop/Husky/catkin_ws/src/husky_inekf/data/husky_inekf_pose_kitti1.txt");
     nh_->param<std::string>("/settings/system_inekf_tum_pose_filename", tum_file_name_, 
-        "/media/jetson256g/data/inekf_result/husky_inekf_tum_pose.txt");
+        "/home/tingjun/Desktop/Husky/catkin_ws/src/husky_inekf/data/husky_inekf_pose_tum1.txt");
 
     
     outfile_.open(file_name_,std::ofstream::out);
@@ -27,6 +27,7 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
     nh_->param<bool>("/settings/system_enable_pose_logger", enable_pose_logger_, false);
     nh_->param<int>("/settings/system_log_pose_skip", log_pose_skip_, 100);
+    skip_count_ = 0;
     // nh_->param<int>("/settings/system_velocity_type", velocity_type_, 0);
 
     last_imu_time_ = 0;
@@ -162,6 +163,7 @@ void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
         tum_outfile_ << state_.getTime() << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
         <<" "<< state_.getQuaternion().y() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;    
         skip_count_ = log_pose_skip_;
+        // tum_outfile.close();
     }
     else {
         skip_count_--;

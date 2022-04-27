@@ -381,11 +381,10 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     // dTheta *= alpha;
     /// REMARK: set yaw bias derivative estimation to 0
     dTheta(2) = 0;
-    dTheta_out << dTheta << std::endl;
+    // dTheta_out << dTheta << std::endl;
     // std::cout << dTheta << "\n" << std::endl;
     Eigen::VectorXd Theta_new = Theta + dTheta;
 
-    // Theta_new(5) = 0;
 
     // Set new state  
     state_.setX(X_new); 
@@ -397,8 +396,8 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
 
     P_new.row(dimP-dimTheta+2).setZero();
     P_new.col(dimP-dimTheta+2).setZero();
-
     P_new(dimP-dimTheta+2, dimP-dimTheta+2) = 0.0001*1;
+
     // Map from right invariant back to left invariant error
     if (error_type_==ErrorType::LeftInvariant) {
         Eigen::MatrixXd AdjInv = Eigen::MatrixXd::Identity(dimP,dimP);

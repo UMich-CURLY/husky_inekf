@@ -183,7 +183,7 @@ void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
         return;
     }
     // Initialize bias based on imu orientation and static assumption
-    if (bias_init_vec_.size() < 250) {
+    if (bias_init_vec_.size() < 200) {
         Eigen::Vector3d w, a;
         w << imu_packet_in.angular_velocity.x, 
              imu_packet_in.angular_velocity.y, 
@@ -196,6 +196,7 @@ void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
                                        imu_packet_in.orientation.y,
                                        imu_packet_in.orientation.z); 
         Eigen::Matrix3d R = quat.toRotationMatrix();
+        // R = Eigen::Matrix3d::Identity();
         Eigen::Vector3d g; g << 0,0,-9.81;
         a = (R.transpose()*(R*a + g)).eval();
         Eigen::Matrix<double,6,1> v; 
