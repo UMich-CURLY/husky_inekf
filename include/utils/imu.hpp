@@ -60,21 +60,39 @@ namespace husky_inekf {
                 //     imu_msg.linear_acceleration.z
                 // };
 
-                angular_velocity = {    
-                    -imu_msg.angular_velocity.y,
-                    -imu_msg.angular_velocity.x,
-                    -imu_msg.angular_velocity.z 
-                };
+                // angular_velocity = {    
+                //     -imu_msg.angular_velocity.y,
+                //     -imu_msg.angular_velocity.x,
+                //     -imu_msg.angular_velocity.z 
+                // };
+                // linear_acceleration = {
+                //     -imu_msg.linear_acceleration.y,
+                //     -imu_msg.linear_acceleration.x,
+                //     -imu_msg.linear_acceleration.z
+                // };
+
+
+                // default is (0, 0.7071, -0.7071, 0)
+                Eigen::Quaternion<double> rotation_body_imu(0, 0.7071, -0.7071, 0);
+                Eigen::Matrix3d rotation_body_imu_matrix = rotation_body_imu.toRotationMatrix();
+
+                angular_velocity = {
+                    rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity[0],
+                    rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity[1],
+                    rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity[2],
+                }
+
                 linear_acceleration = {
-                    -imu_msg.linear_acceleration.y,
-                    -imu_msg.linear_acceleration.x,
-                    -imu_msg.linear_acceleration.z
+                    rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration[0],
+                    rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration[1],
+                    rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration[2],
                 };
 
                 setHeader(imu_msg.header);
 
                 type_ = IMU;
             }
+
 
         private:
             Eigen::Matrix3d R_;
