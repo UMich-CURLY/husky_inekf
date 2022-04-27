@@ -100,8 +100,8 @@ namespace husky_inekf {
             }
     
         private:
-            // static constexpr double wheel_radius_ = 0.1651;
-            static constexpr double wheel_radius_ = 0.3;
+            static constexpr double wheel_radius_ = 0.1651;
+            // static constexpr double wheel_radius_ = 0.3;
 
             static constexpr double vehicle_track_width_ = 0.555;
             unsigned int encoder_dim_; 

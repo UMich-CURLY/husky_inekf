@@ -108,30 +108,28 @@ void HuskyComms::jointStateCallback(const sensor_msgs::JointState& joint_msg)
 
 void HuskyComms::jointStateVelocityCallback(const sensor_msgs::JointState& joint_msg)
 {   
-    if (joint_msg.velocity.size() == 4) {
-        auto joint_state_ptr = std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4);
+    auto joint_state_ptr = std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4);
 
-        // set velocity message:
-        geometry_msgs::TwistStamped vel_msg;
-        vel_msg.header = joint_msg.header;
+    // set velocity message:
+    geometry_msgs::TwistStamped vel_msg;
+    vel_msg.header = joint_msg.header;
 
-        vel_msg.twist.linear.x = joint_state_ptr->getBodyLinearVelocity()(0);
-        vel_msg.twist.linear.y = joint_state_ptr->getBodyLinearVelocity()(1);
-        vel_msg.twist.linear.z = joint_state_ptr->getBodyLinearVelocity()(2);
+    vel_msg.twist.linear.x = joint_state_ptr->getBodyLinearVelocity()(0);
+    vel_msg.twist.linear.y = joint_state_ptr->getBodyLinearVelocity()(1);
+    vel_msg.twist.linear.z = joint_state_ptr->getBodyLinearVelocity()(2);
 
-        vel_msg.twist.angular.x = joint_state_ptr->getBodyAngularVelocity()(0);
-        vel_msg.twist.angular.y = joint_state_ptr->getBodyAngularVelocity()(1);
-        vel_msg.twist.angular.z = joint_state_ptr->getBodyAngularVelocity()(2);
-        auto vel_ptr = std::make_shared<husky_inekf::VelocityMeasurement>(vel_msg);
+    vel_msg.twist.angular.x = joint_state_ptr->getBodyAngularVelocity()(0);
+    vel_msg.twist.angular.y = joint_state_ptr->getBodyAngularVelocity()(1);
+    vel_msg.twist.angular.z = joint_state_ptr->getBodyAngularVelocity()(2);
+    auto vel_ptr = std::make_shared<husky_inekf::VelocityMeasurement>(vel_msg);
 
 
-        std::lock_guard<std::mutex> lock2(husky_data_buffer_->joint_state_mutex);
-        husky_data_buffer_->joint_state_q.push(joint_state_ptr);
+    std::lock_guard<std::mutex> lock2(husky_data_buffer_->joint_state_mutex);
+    husky_data_buffer_->joint_state_q.push(joint_state_ptr);
 
-        std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
-        husky_data_buffer_ -> velocity_q.push(vel_ptr);
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
+    husky_data_buffer_ -> velocity_q.push(vel_ptr);
         
-    }
     
     // std::cout<<husky_data_buffer_ -> velocity_q.size()<<std::endl;
     // std::cout<<"joint state size: "<<husky_data_buffer_->joint_state_q.size()<<std::endl;
