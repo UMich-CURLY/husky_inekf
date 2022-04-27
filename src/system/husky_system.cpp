@@ -44,6 +44,7 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     nh_->param<bool>("/settings/system_enable_pose_logger", enable_pose_logger_, false);
     nh_->param<bool>("/settings/system_enable_debug_logger", enable_debug_logger_, false);
     nh_->param<int>("/settings/system_log_pose_skip", log_pose_skip_, 100);
+    skip_count_ = 0;
     // nh_->param<int>("/settings/system_velocity_type", velocity_type_, 0);
 
     last_imu_time_ = 0;
@@ -51,6 +52,7 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
 }
 
 HuskySystem::~HuskySystem(){
+    std::cout << "Ready to close Husky system" << std::endl;
     outfile_.close();
     tum_outfile_.close();
     vel_est_outfile_.close();
@@ -61,10 +63,7 @@ HuskySystem::~HuskySystem(){
 
 void HuskySystem::step() {
 
-    // boost::timer::auto_cpu_timer t;
-    // boost::timer::cpu_timer timer;
     // if the estimator is initialized
-    
     if (estimator_.enabled()){
         
         // if IMU measurement exists we do prediction
@@ -94,47 +93,14 @@ void HuskySystem::step() {
             
             new_pose_ready_ = true;
         }
-
-        // if(updateNextJointState()){
-        //     estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
-        //     new_pose_ready_ = true;
-        // }
-
-        // if(velocity_type_ == 0){
-        //     // if velocity measurement exsits we do correction
-        //     if(updateNextJointState()){
-        //         estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
-        //         new_pose_ready_ = true;
-        //     }
-        // }
-        // else if(velocity_type_ == 1){
-        //     if(updateNextVelocity()){
-        //         estimator_.correctVelocity(*(velocity_packet_.get()),state_);
-        //         new_pose_ready_ = true;
-        //     }
-        // }
-        // else if(velocity_type_ == 3){
-        //     if(updateNextVelocity()){
-        //         estimator_.correctVelocity(*(velocity_packet_.get()),state_);
-        //         new_pose_ready_ = true;
-        //     }
-        //     if(updateNextJointState()){
-        //         estimator_.correctVelocity(*(joint_state_packet_.get()),state_);
-        //         new_pose_ready_ = true;
-        //     }
-        // }
         
 
         if (enable_pose_publisher_ && new_pose_ready_) {
             pose_publisher_node_.posePublish(state_);
-            // std::cout << timer.format() << '\n';
-            // std::cout<<"publish pose: "<<ros::Time::now()<<std::endl;
-            // std::cout<<"-------------"<<std::endl;
         }        
 
         if (enable_pose_logger_ && new_pose_ready_){
-                // std::cout<<"logging poses"<<std::endl;
-                logPoseTxt(state_);
+            logPoseTxt(state_);
         }
 
         new_pose_ready_ = false;
@@ -149,29 +115,6 @@ void HuskySystem::step() {
             while(!updateNextVelocity()){}
             
             estimator_.initState(*(imu_packet_.get()), *(velocity_packet_.get()), state_);
-            
-            // husky_data_buffer_->joint_state_q = {};
-
-            // if(velocity_type_ == 0){
-            //     // wait until we receive joint state msg
-            //     while(!updateNextJointState()){};
-            //     estimator_.initState(*(imu_packet_.get()), *(joint_state_packet_.get()), state_);
-            //     husky_data_buffer_->joint_state_q = {};
-            // }
-            // else if(velocity_type_ == 1){
-            //     // wait until we receive joint state msg
-
-            //     while(!updateNextVelocity()){};
-            //     estimator_.initState(*(imu_packet_.get()), *(velocity_packet_.get()), state_);
-            //     husky_data_buffer_->velocity_q = {};
-            // }
-            // else if(velocity_type_ == 3){
-            //     // wait until we receive joint state msg
-            //     while(!updateNextJointState()){};
-            //     estimator_.initState(*(imu_packet_.get()), *(joint_state_packet_.get()), state_);
-            //     husky_data_buffer_->joint_state_q = {};
-            //     husky_data_buffer_->velocity_q = {};
-            // }
             
             estimator_.enableFilter();
             husky_data_buffer_->velocity_q = {};
@@ -210,6 +153,7 @@ void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
         
 
         skip_count_ = log_pose_skip_;
+        // tum_outfile.close();
     }
     else {
         skip_count_--;

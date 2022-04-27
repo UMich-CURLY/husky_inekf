@@ -78,19 +78,6 @@ class PathPublisherNode {
             // std::cout<<"subscribing to pose: "<<pose.pose.position.x<<", "<<pose.pose.position.y<<", "<<pose.pose.position.z<<std::endl;
             
             std::lock_guard<std::mutex> lock(poses_mutex_);
-
-            // if (file_name_.size() > 0) {
-		    //   ROS_INFO_STREAM("write new pose\n");
-            //   std::ofstream outfile(file_name_,std::ofstream::out | std::ofstream::app );
-            //   outfile << "1 0 0 "<< pose.pose.position.x<<" 0 1 0 "<<pose.pose.position.y<<" 0 0 1 "<<pose.pose.position.z<<std::endl<<std::flush;
-            //   outfile.close();
-            //   // tum style
-            //   std::ofstream tum_outfile(tum_file_name_,std::ofstream::out | std::ofstream::app );
-            //   tum_outfile << pose.header.stamp << " "<< pose.pose.position.x<<" "<< pose.pose.position.y << " "<<pose.pose.position.z << " "<<pose.pose.orientation.x\
-            //   <<" "<< pose.pose.orientation.y <<" "<< pose.pose.orientation.z <<" "<< pose.pose.orientation.w <<std::endl<<std::flush;
-              
-            //   tum_outfile.close();
-            // }
             
             poses_.push_back(pose);
         }
@@ -102,13 +89,6 @@ class PathPublisherNode {
             pose.pose = msg->pose;
             // std::cout<<"publishing: "<<pose.pose.position.x<<", "<<pose.pose.position.y<<", "<<pose.pose.position.z<<std::endl;
             std::lock_guard<std::mutex> lock(poses_mutex_);
-
-            // if (file_name_.size() > 0) {
-            //   std::ofstream outfile(file_name_,std::ofstream::out | std::ofstream::app );
-            //   outfile << "1 0 0 "<< pose.pose.position.x<<" 0 1 0 "<<pose.pose.position.y<<" 0 0 1 "<<pose.pose.position.z<<std::endl<<std::flush;
-            //   outfile.close();
-            // }
-            
             poses_.push_back(pose);
         }
 

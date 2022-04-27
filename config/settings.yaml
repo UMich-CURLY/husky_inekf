@@ -1,6 +1,6 @@
 settings:
   initialize_state_from_first_observation: false
-  imu_topic: "/imu/data" # "/gx5_0/imu/data", "/carla/ego_vehicle/imu", "imu_with_noise", "/imu/data"
+  imu_topic: "/gx5_0/imu/data" # "/gx5_0/imu/data", "/carla/ego_vehicle/imu", "imu_with_noise", "/imu/data"
   joint_topic: "/joint_states"
   map_frame_id : "/odom"
   base_frame_id: "/husky/imu" 
@@ -11,7 +11,7 @@ settings:
   flat_ground: false
 
   velocity_type: 1 # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
-  velocity_topic: "/joint_states" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
+  velocity_topic: "joint_states" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
 
   # Body Estimator
   estimator_publish_visualization_markers: true
@@ -40,9 +40,8 @@ settings:
 
   # odom_to_imu
   # Husky:
-  translation:  [-66.465, 28.652, 0.132]
-  roataion: [0.000, 0.000, -0.471, 0.882] # Quaternion
-
+  # translation:  [-66.465, 28.652, 0.132]
+  # roataion: [0.000, 0.000, -0.471, 0.882] # Quaternion
   # Carla:
   # translation: [0, 0, 0]
   # rotation: [0, 0, 0, 1]

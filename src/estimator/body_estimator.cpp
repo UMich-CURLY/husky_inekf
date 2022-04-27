@@ -89,11 +89,6 @@ void BodyEstimator::propagateIMU(const ImuMeasurement<double>& imu_packet_in, Hu
         ROS_INFO("Tprev %0.6lf T %0.6lf dt %0.6lf \n", t_prev_, t, dt);
     }
     
-    // std::cout<<std::setprecision(12)<<std::endl;
-    // std::cout<<"t: "<<t<<std::endl;
-    // std::cout<<"t_prev: "<<t_prev_<<std::endl;
-    // std::cout<<"dt: "<<dt<<std::endl;
-    // std::cout<<"============="<<std::endl;
     if (dt > 0)
         filter_.Propagate(imu_prev_, dt); 
 
@@ -174,8 +169,6 @@ void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_i
         Eigen::Vector3d acc_bias = estimate.getAccelerometerBias();
 
         bias_outfile_ << t << "\n" << gyro_bias << "\n" << acc_bias << std::endl;
-        // std::cout << "Gyro_bias: " << gyro_bias << std::endl;
-        // std::cout << "Acc_bias: " << acc_bias << std::endl;
 
         state.setBaseRotation(R);
         state.setBasePosition(p);
@@ -213,6 +206,8 @@ void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
                                        imu_packet_in.orientation.x,
                                        imu_packet_in.orientation.y,
                                        imu_packet_in.orientation.z); 
+        // Eigen::Matrix3d R = quat.toRotationMatrix();
+        // R = Eigen::Matrix3d::Identity();
         // Eigen::Matrix3d R = quat.toRotationMatrix();
         // Eigen::Matrix3d R_imu_body;
         // R_imu_body<<0,-1,0,
@@ -309,11 +304,6 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
     // Eigen::Vector3d v0 = {0.0,0.0,0.0};
     Eigen::Vector3d p0 = {0.0, 0.0, 0.0}; // initial position, we set imu frame as world frame
 
-    ///DELETE:
-    // bg0_ = {0.0515698903002, 0.0515698903002, 0.0515698903002};
-    // ba0_ = {0.515757598072, 0.515757598072, 0.515757598072};
-    // bg0_ = {0., 0., 0.};
-    // ba0_ = {0., 0., 0.};
 
     R0 = Eigen::Matrix3d::Identity();
     inekf::RobotState initial_state; 
