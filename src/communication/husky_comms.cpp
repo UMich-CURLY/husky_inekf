@@ -22,6 +22,8 @@ HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_da
     nh_->param<std::vector<double>>("settings/translation", translation_imu, std::vector<double>({0, 0, 0, 0}));
     nh_->param<std::vector<double>>("settings/rotation", rotation_imu, std::vector<double>({0, 0, 0, 1}));
 
+    nh_->param<std::vector<double>>("settings/rotation_body_imu", rotation_body_imu, std::vector<double>({0, 0.7071, -0.7071, 0}));
+
     std::cout<<"husky comms nh namespace: "<<ros::this_node::getNamespace()<<std::endl;
 
     std::cout<<"subscribing to: "<< imu_topic << joint_topic<<", and "<<velocity_topic << std::endl;
@@ -70,7 +72,7 @@ void HuskyComms::sub(){
 void HuskyComms::imuCallback(const sensor_msgs::Imu& imu_msg) 
 {
     auto imu_ptr = 
-        std::make_shared<husky_inekf::ImuMeasurement<double> >(imu_msg);
+        std::make_shared<husky_inekf::ImuMeasurement<double> >(imu_msg, rotation_body_imu);
 
     std::lock_guard<std::mutex> lock(husky_data_buffer_->imu_mutex);
     husky_data_buffer_->imu_q.push(imu_ptr);

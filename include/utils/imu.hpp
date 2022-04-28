@@ -42,7 +42,7 @@ namespace husky_inekf {
             }
 
             // Overloaded constructor for construction using ros imu topic
-            ImuMeasurement(const sensor_msgs::Imu& imu_msg) {
+            ImuMeasurement(const sensor_msgs::Imu& imu_msg, std::vector<double>& rotation_body_imu) {
                 orientation = { 
                     imu_msg.orientation.w, 
                     imu_msg.orientation.x, 
@@ -73,19 +73,22 @@ namespace husky_inekf {
 
 
                 // default is (0, 0.7071, -0.7071, 0)
-                Eigen::Quaternion<double> rotation_body_imu(0, 0.7071, -0.7071, 0);
+                Eigen::Quaternion<double> rotation_body_imu(rotation_body_imu[0], 
+                                                            rotation_body_imu[1], 
+                                                            rotation_body_imu[2], 
+                                                            rotation_body_imu[3]);
                 Eigen::Matrix3d rotation_body_imu_matrix = rotation_body_imu.toRotationMatrix();
 
                 angular_velocity = {
-                    rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity[0],
-                    rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity[1],
-                    rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity[2],
+                    (rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity)[0],
+                    (rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity)[1],
+                    (rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity)[2],
                 }
 
                 linear_acceleration = {
-                    rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration[0],
-                    rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration[1],
-                    rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration[2],
+                    (rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration)[0],
+                    (rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration)[1],
+                    (rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration)[2],
                 };
 
                 setHeader(imu_msg.header);
