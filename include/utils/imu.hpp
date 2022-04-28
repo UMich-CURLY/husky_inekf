@@ -73,22 +73,32 @@ namespace husky_inekf {
 
 
                 // default is (0, 0.7071, -0.7071, 0)
-                Eigen::Quaternion<double> rotation_body_imu(rotation_body_imu[0], 
-                                                            rotation_body_imu[1], 
-                                                            rotation_body_imu[2], 
-                                                            rotation_body_imu[3]);
-                Eigen::Matrix3d rotation_body_imu_matrix = rotation_body_imu.toRotationMatrix();
+                Eigen::Quaternion<double> rotation_body2imu(rotation_body_imu[0],rotation_body_imu[1],rotation_body_imu[2],rotation_body_imu[3]);
+                Eigen::Matrix3d rotation_body_imu_matrix;
+                rotation_body_imu_matrix = rotation_body2imu.toRotationMatrix();
+                Eigen::Vector3d angular_velocity_imu;
+                angular_velocity_imu << imu_msg.angular_velocity.x,
+                                                        imu_msg.angular_velocity.y,
+                                                        imu_msg.angular_velocity.z;
+                Eigen::Vector3d linear_acceleration_imu;
+                linear_acceleration_imu << imu_msg.linear_acceleration.x,
+                                                        imu_msg.linear_acceleration.y,
+                                                        imu_msg.linear_acceleration.z;
 
+
+                // angular_velocity = (rotation_body_imu_matrix.transpose()*angular_velocity_imu).eval();
+                
                 angular_velocity = {
-                    (rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity)[0],
-                    (rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity)[1],
-                    (rotation_body_imu_matrix.transpose()*imu_msg.angular_velocity)[2],
-                }
+                    (rotation_body_imu_matrix.transpose()*angular_velocity_imu)[0],
+                    (rotation_body_imu_matrix.transpose()*angular_velocity_imu)[1],
+                    (rotation_body_imu_matrix.transpose()*angular_velocity_imu)[2]
+                };
 
+                // linear_acceleration = (rotation_body_imu_matrix.transpose()*linear_acceleration_imu).eval();
                 linear_acceleration = {
-                    (rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration)[0],
-                    (rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration)[1],
-                    (rotation_body_imu_matrix.transpose()*imu_msg.linear_acceleration)[2],
+                    (rotation_body_imu_matrix.transpose()*linear_acceleration_imu)[0],
+                    (rotation_body_imu_matrix.transpose()*linear_acceleration_imu)[1],
+                    (rotation_body_imu_matrix.transpose()*linear_acceleration_imu)[2]
                 };
 
                 setHeader(imu_msg.header);

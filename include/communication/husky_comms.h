@@ -46,6 +46,7 @@ class HuskyComms {
 
         std::vector<double> translation_imu;
         std::vector<double> rotation_imu;
+        std::vector<double> rotation_body_imu;
 
         husky_inekf::husky_data_t* husky_data_buffer_;
 
