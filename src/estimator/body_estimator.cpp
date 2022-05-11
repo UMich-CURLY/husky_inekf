@@ -16,6 +16,7 @@ BodyEstimator::BodyEstimator() :
     nh.param<bool>("/settings/estimator_enable_debug", estimator_debug_enabled_, false);
     // Settings
     nh.param<bool>("/settings/estimator_static_bias_initialization", static_bias_initialization_, false);
+    nh.param<bool>("/settings/estimator_init_bias_using_orientation_est_from_imu", use_imu_ori_est_init_bias_, false);
 
     nh.param<double>("/settings/estimator_velocity_time_threshold",velocity_t_thres_,0.1);
     
@@ -206,15 +207,18 @@ void BodyEstimator::initBias(const ImuMeasurement<double>& imu_packet_in) {
                                        imu_packet_in.orientation.x,
                                        imu_packet_in.orientation.y,
                                        imu_packet_in.orientation.z); 
-        // Eigen::Matrix3d R = quat.toRotationMatrix();
-        // R = Eigen::Matrix3d::Identity();
-        // Eigen::Matrix3d R = quat.toRotationMatrix();
-        // Eigen::Matrix3d R_imu_body;
-        // R_imu_body<<0,-1,0,
-        //             -1,0,0,
-        //             0,0,-1;
-        // R = R*R_imu_body;
-        Eigen::Matrix3d R = Eigen::Matrix3d::Identity();
+        Eigen::Matrix3d R;
+        if(use_imu_ori_est_init_bias_){
+            R = quat.toRotationMatrix();
+        }
+        else{
+            R = Eigen::Matrix3d::Identity();
+        }
+        
+        // std::cout<<"R: \n"<<R<<std::endl;
+        // std::cout<<"a: \n"<<a<<std::endl;
+        // std::cout<<"a_world: \n"<<R.transpose()*a<<std::endl;
+        
         Eigen::Vector3d g; g << 0,0,-9.81;
         a = (R.transpose()*(R*a + g)).eval();
         Eigen::Matrix<double,6,1> v; 

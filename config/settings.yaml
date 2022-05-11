@@ -1,6 +1,6 @@
 settings:
   initialize_state_from_first_observation: false
-  imu_topic: "/gx5_0/imu/data" # "/gx5_0/imu/data", "/carla/ego_vehicle/imu", "imu_with_noise", "/imu/data"
+  imu_topic: "/gx5_1/imu/data" # "/gx5_0/imu/data", "/carla/ego_vehicle/imu", "imu_with_noise", "/imu/data"
   joint_topic: "/joint_states"
   map_frame_id : "/odom"
   base_frame_id: "/husky/imu" 
@@ -10,13 +10,14 @@ settings:
   enable_kinematics: true
   flat_ground: false
 
-  velocity_type: 1 # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
-  velocity_topic: "joint_states" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
+  velocity_type: 3 # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
+  velocity_topic: "/zed_node/odom" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
   
   # Body Estimator
   estimator_publish_visualization_markers: true
   estimator_enable_debug: false
   estimator_static_bias_initialization: true
+  estimator_init_bias_using_orientation_est_from_imu: true
   estimator_velocity_time_threshold: 0.5
 
   # Husky System
@@ -24,12 +25,12 @@ settings:
   system_enable_pose_logger: true
   system_enable_debug_logger: true
   system_log_pose_skip: 0
-  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_kitti.txt"
-  system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/husky_inekf_pose_tum.txt"
-  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/vel_est.txt"
-  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/bias_est.txt"
-  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/vel_input.txt"
-  system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/imu.txt"
+  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_husky_inekf_pose_kitti.txt"
+  system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_husky_inekf_pose_tum.txt"
+  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_vel_est.txt"
+  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_bias_est.txt"
+  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_vel_input.txt"
+  system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_imu.txt"
   system_velocity_type: 1
 
   # Path Publisher
@@ -38,7 +39,8 @@ settings:
   publish_rate: 1000
   pose_skip: 1
   
-  rotation_body_imu: [0, 0.7071, -0.7071, 0] # Quaternion
+  
+  rotation_body_imu: [0, 0.7071, -0.7071, 0] # Quaternion [w,x,y,z]
 
   # odom_to_imu
   # Husky:
