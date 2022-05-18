@@ -11,6 +11,7 @@
 
 HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer): 
     nh_(nh), husky_data_buffer_(husky_data_buffer), pose_publisher_node_(nh), new_pose_ready_(false) {
+
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
         "husky_inekf_kitti_pose.txt");
@@ -39,13 +40,16 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     vel_input_outfile_.precision(20);
     imu_outfile_.precision(20);
 
+    // set velocity update methods
+    nh_->param<bool>("/settings/enable_wheel_velocity_update", enable_wheel_vel_, true);
+    nh_->param<bool>("/settings/enable_camera_velocity_update", enable_camera_vel_, false);
+    nh_->param<bool>("/settings/enable_gps_velocity_update", enable_gps_vel_, false);
+
     // Initialize pose publishing if requested
     nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
     nh_->param<bool>("/settings/system_enable_pose_logger", enable_pose_logger_, false);
     nh_->param<bool>("/settings/system_enable_debug_logger", enable_debug_logger_, false);
     nh_->param<int>("/settings/system_log_pose_skip", log_pose_skip_, 100);
-    skip_count_ = 0;
-    // nh_->param<int>("/settings/system_velocity_type", velocity_type_, 0);
 
     last_imu_time_ = 0;
     skip_count_ = 0;
@@ -82,18 +86,42 @@ void HuskySystem::step() {
             new_pose_ready_ = true;
         }
 
-        if (updateNextVelocity()) {
-            estimator_.correctVelocity(*(velocity_packet_.get()),state_);
+        // update using body velocity from wheel encoders
+        if (enable_wheel_vel_ && updateNextWheelVelocity()) {
+            estimator_.correctVelocity(*(wheel_velocity_packet_.get()),state_);
+            new_pose_ready_ = true;
+
 
             // record 
-            auto v_in = velocity_packet_->getLinearVelocity();
+            auto v_in = wheel_velocity_packet_->getLinearVelocity();
             if(enable_debug_logger_){
-                vel_input_outfile_ << velocity_packet_->getTime() << " " << v_in(0) << " " << v_in(1) << " " << v_in(2) << std::endl<<std::flush;
+                vel_input_outfile_ << wheel_velocity_packet_->getTime() << " " << v_in(0) << " " << v_in(1) << " " << v_in(2) << std::endl<<std::flush;
             }
-            
+        }
+
+        // update using camera velocity
+        if (enable_camera_vel_ && updateNextCameraVelocity()) {
+            estimator_.correctVelocity(*(camera_velocity_packet_.get()),state_);
             new_pose_ready_ = true;
+
+            // record 
+            auto v_in = camera_velocity_packet_->getLinearVelocity();
+            if(enable_debug_logger_){
+                vel_input_outfile_ << camera_velocity_packet_->getTime() << " " << v_in(0) << " " << v_in(1) << " " << v_in(2) << std::endl<<std::flush;
+            }
         }
         
+        // update using gps velocity
+        if (enable_gps_vel_ && updateNextGPSVelocity()) {
+            estimator_.correctVelocity(*(gps_velocity_packet_.get()),state_);
+            new_pose_ready_ = true;
+
+            // record 
+            auto v_in = gps_velocity_packet_->getLinearVelocity();
+            if(enable_debug_logger_){
+                vel_input_outfile_ << gps_velocity_packet_->getTime() << " " << v_in(0) << " " << v_in(1) << " " << v_in(2) << std::endl<<std::flush;
+            }
+        }
 
         if (enable_pose_publisher_ && new_pose_ready_) {
             pose_publisher_node_.posePublish(state_);
@@ -112,12 +140,24 @@ void HuskySystem::step() {
             // wait until we receive imu msg
             while(!updateNextIMU()){};
             
-            while(!updateNextVelocity()){}
+            if(enable_wheel_vel_){
+                while(!updateNextWheelVelocity()){}
+                estimator_.initState(*(imu_packet_.get()), *(wheel_velocity_packet_.get()), state_);
+            }
+            else if(enable_camera_vel_){
+                while(!updateNextCameraVelocity()){}
+                estimator_.initState(*(imu_packet_.get()), *(camera_velocity_packet_.get()), state_);
+            }
+            else if(enable_gps_vel_){
+                while(!updateNextGPSVelocity()){}
+                estimator_.initState(*(imu_packet_.get()), *(gps_velocity_packet_.get()), state_);
+            }
             
-            estimator_.initState(*(imu_packet_.get()), *(velocity_packet_.get()), state_);
             
             estimator_.enableFilter();
-            husky_data_buffer_->velocity_q = {};
+            husky_data_buffer_->wheel_velocity_q = {};
+            husky_data_buffer_->camera_velocity_q = {};
+            husky_data_buffer_->gps_velocity_q = {};
             
             std::cout<<"State initialized."<<std::endl;
         } else {
@@ -129,11 +169,9 @@ void HuskySystem::step() {
 }
 
 void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
-    // std::cout<<"before counting"<<std::endl;
     if (skip_count_ == 0) {
         // ROS_INFO_STREAM("write new pose\n");
         double t = state_.getTime();
-
 
         // log pose kitti style
         outfile_ << "1 0 0 "<< state_.x() <<" 0 1 0 "<< state_.y() <<" 0 0 1 "<< state_.z() <<std::endl<<std::flush;
@@ -153,7 +191,6 @@ void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
         
 
         skip_count_ = log_pose_skip_;
-        // tum_outfile.close();
     }
     else {
         skip_count_--;
@@ -166,35 +203,25 @@ void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
 
 // Private Functions
 bool HuskySystem::updateNextIMU() {
-    // husky_data_buffer_->imu_mutex.lock();
     std::lock_guard<std::mutex> lock(husky_data_buffer_->imu_mutex);
     if (!husky_data_buffer_->imu_q.empty()) {
 
         if(husky_data_buffer_->imu_q.size()>1){
             ROS_INFO_STREAM("Filter not running in real-time!");
             ROS_INFO_STREAM("IMU queue size: " <<  husky_data_buffer_->imu_q.size());
-
-            // std::cout<< std::setprecision(20) << husky_data_buffer_->imu_q.front()->getTime()<<std::endl;
-            // std::cout<< std::setprecision(20) << husky_data_buffer_->imu_q.back()->getTime()<<std::endl;
         }
         imu_packet_ = husky_data_buffer_->imu_q.front();
         husky_data_buffer_->imu_q.pop();
-        // husky_data_buffer_->imu_mutex.unlock();
         // Update Husky State
         state_.setImu(imu_packet_);
-
-        // std::cout<<"IMU time diff: "<<imu_packet_->getTime() - last_imu_time_<<std::endl;
-        // last_imu_time_ = imu_packet_->getTime();
 
         return true;
     }
     // ROS_INFO_STREAM("!!!imu not received!!!");
-    // husky_data_buffer_->imu_mutex.unlock();
     return false;
 }
 
 bool HuskySystem::updateNextJointState() {
-    // husky_data_buffer_->joint_state_mutex.lock();
     std::lock_guard<std::mutex> lock(husky_data_buffer_->joint_state_mutex);
     if (!husky_data_buffer_->joint_state_q.empty()) {
 
@@ -205,8 +232,6 @@ bool HuskySystem::updateNextJointState() {
 
         joint_state_packet_ = husky_data_buffer_->joint_state_q.front();
         husky_data_buffer_->joint_state_q.pop();
-        // drop everything older than the top measurement on the stack 
-        // husky_data_buffer_->joint_state_q.clear();
 
         // Update Husky State
         state_.setJointState(joint_state_packet_);
@@ -218,24 +243,56 @@ bool HuskySystem::updateNextJointState() {
 
 
 
-bool HuskySystem::updateNextVelocity() {
-    std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
+bool HuskySystem::updateNextWheelVelocity() {
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->wheel_vel_mutex);
     
-    if (!husky_data_buffer_->velocity_q.empty()) {
+    if (!husky_data_buffer_->wheel_velocity_q.empty()) {
 
-        if(husky_data_buffer_->velocity_q.size()>1){
+        if(husky_data_buffer_->wheel_velocity_q.size()>1){
             ROS_INFO_STREAM("Filter not running in real-time!");
-            ROS_INFO_STREAM("Velocity queue size: " <<  husky_data_buffer_->velocity_q.size());
+            ROS_INFO_STREAM("Velocity queue size: " <<  husky_data_buffer_->wheel_velocity_q.size());
         }
 
-        velocity_packet_ = husky_data_buffer_->velocity_q.front();
-        husky_data_buffer_->velocity_q.pop();
+        wheel_velocity_packet_ = husky_data_buffer_->wheel_velocity_q.front();
+        husky_data_buffer_->wheel_velocity_q.pop();
 
-        // drop everything older than the top measurement on the stack 
-        // husky_data_buffer_->joint_state_q.clear();
+        return true;
+    }
+    // std::cout<<"velocity q empty... "<<std::endl;
+    return false;
+}
 
-        // Update Husky State
-        // state_.setVelocity(velocity_packet_);
+bool HuskySystem::updateNextCameraVelocity() {
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->cam_vel_mutex);
+    
+    if (!husky_data_buffer_->camera_velocity_q.empty()) {
+
+        if(husky_data_buffer_->camera_velocity_q.size()>1){
+            ROS_INFO_STREAM("Filter not running in real-time!");
+            ROS_INFO_STREAM("Velocity queue size: " <<  husky_data_buffer_->camera_velocity_q.size());
+        }
+
+        camera_velocity_packet_ = husky_data_buffer_->camera_velocity_q.front();
+        husky_data_buffer_->camera_velocity_q.pop();
+
+        return true;
+    }
+    // std::cout<<"velocity q empty... "<<std::endl;
+    return false;
+}
+
+bool HuskySystem::updateNextGPSVelocity() {
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->gps_vel_mutex);
+    
+    if (!husky_data_buffer_->gps_velocity_q.empty()) {
+
+        if(husky_data_buffer_->gps_velocity_q.size()>1){
+            ROS_INFO_STREAM("Filter not running in real-time!");
+            ROS_INFO_STREAM("Velocity queue size: " <<  husky_data_buffer_->gps_velocity_q.size());
+        }
+
+        gps_velocity_packet_ = husky_data_buffer_->gps_velocity_q.front();
+        husky_data_buffer_->gps_velocity_q.pop();
 
         return true;
     }

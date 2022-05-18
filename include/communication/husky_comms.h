@@ -37,8 +37,14 @@ class HuskyComms {
         ros::NodeHandle* nh_;
         ros::Subscriber imu_sub_;
         ros::Subscriber joint_sub_;
-        ros::Subscriber vel_sub_;
+        ros::Subscriber wheel_vel_sub_;
+        ros::Subscriber cam_vel_sub_;
+        ros::Subscriber gps_vel_sub_;
         ros::Subscriber odom_record_sub_;
+
+        bool enable_wheel_vel_;
+        bool enable_camera_vel_;
+        bool enable_gps_vel_;
 
         std::ofstream outfile_;
 

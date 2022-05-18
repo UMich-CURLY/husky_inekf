@@ -249,15 +249,21 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
                                    imu_packet_in.orientation.y,
                                    imu_packet_in.orientation.z); 
     // Eigen::Matrix3d R0 = quat.toRotationMatrix(); // Initialize based on VectorNav estimate
-    Eigen::Matrix3d R0 = Eigen::Matrix3d::Identity();
+    Eigen::Matrix3d R0;
+    
+    if(use_imu_ori_est_init_bias_){
+        R0 = quat.toRotationMatrix();
+    }
+    else{
+        R0 = Eigen::Matrix3d::Identity();
+    }
 
     Eigen::Vector3d v0_body = joint_state_packet_in.getBodyLinearVelocity();
     Eigen::Vector3d v0 = R0*v0_body; // initial velocity
 
     // Eigen::Vector3d v0 = {0.0,0.0,0.0};
     Eigen::Vector3d p0 = {0.0, 0.0, 0.0}; // initial position, we set imu frame as world frame
-
-    R0 = Eigen::Matrix3d::Identity();
+    
     inekf::RobotState initial_state; 
     initial_state.setRotation(R0);
     initial_state.setVelocity(v0);

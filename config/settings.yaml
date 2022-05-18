@@ -10,9 +10,14 @@ settings:
   enable_kinematics: true
   flat_ground: false
 
-  velocity_type: 3 # 1 for joint_state, 2 for gps_vel, 3 for camera_odom
-  velocity_topic: "/zed_node/odom" # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
-  
+  # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
+  enable_wheel_velocity_update: true
+  wheel_velocity_topic: "/joint_states"
+  enable_camera_velocity_update: true
+  camera_velocity_topic: "/zed_node/odom"
+  enable_gps_velocity_update: false
+  gps_velocity_topic: "/gps/vel"
+
   # Body Estimator
   estimator_publish_visualization_markers: true
   estimator_enable_debug: false
@@ -25,12 +30,12 @@ settings:
   system_enable_pose_logger: true
   system_enable_debug_logger: true
   system_log_pose_skip: 0
-  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_husky_inekf_pose_kitti.txt"
-  system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_husky_inekf_pose_tum.txt"
-  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_vel_est.txt"
-  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_bias_est.txt"
-  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_vel_input.txt"
-  system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_cam_imu.txt"
+  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_husky_inekf_pose_kitti.txt"
+  system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_husky_inekf_pose_tum.txt"
+  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_vel_est.txt"
+  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_bias_est.txt"
+  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_vel_input.txt"
+  system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_imu.txt"
   system_velocity_type: 1
 
   # Path Publisher

@@ -6,50 +6,49 @@
 HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer)
                         : nh_(nh), husky_data_buffer_(husky_data_buffer)
 {
-    std::string imu_topic, joint_topic, velocity_topic;
-    int velocity_type;
-
+    std::string imu_topic, joint_topic, wheel_vel_topic, camera_vel_topic, gps_vel_topic;
+    
     nh_->param<std::string>("/settings/imu_topic", imu_topic, "/gx5_0/imu/data");
     nh_->param<std::string>("/settings/joint_topic", joint_topic, "/joint_states");
 
-    // Velocity topic:
-    nh_->param<std::string>("/settings/velocity_topic", velocity_topic, "/gps/vel");
 
     // Velocity Type:
-    nh_->param<int>("/settings/velocity_type", velocity_type, 1);
+    nh_->param<bool>("/settings/enable_wheel_velocity_update", enable_wheel_vel_, true);
+    nh_->param<std::string>("/settings/wheel_velocity_topic", wheel_vel_topic, "/joint_states");
+    nh_->param<bool>("/settings/enable_camera_velocity_update", enable_camera_vel_, false);
+    nh_->param<std::string>("/settings/camera_velocity_topic", camera_vel_topic, "/zed_node/odom");
+    nh_->param<bool>("/settings/enable_gps_velocity_update", enable_gps_vel_, false);
+    nh_->param<std::string>("/settings/gps_velocity_topic", gps_vel_topic, "/gps/vel");
 
+    // TODO: Check usage
     // Odom To IMU frame:
     nh_->param<std::vector<double>>("settings/translation", translation_imu, std::vector<double>({0, 0, 0, 0}));
     nh_->param<std::vector<double>>("settings/rotation", rotation_imu, std::vector<double>({0, 0, 0, 1}));
-
+    
+    // Rotation from IMU to body frame. Body frame definition: X forward, Y left, Z up.
     nh_->param<std::vector<double>>("settings/rotation_body_imu", rotation_body_imu, std::vector<double>({0, 0.7071, -0.7071, 0}));
 
-    std::cout<<"husky comms nh namespace: "<<ros::this_node::getNamespace()<<std::endl;
+    std::cout<<"subscribing to: "<< imu_topic << joint_topic<<std::endl;
 
-    std::cout<<"subscribing to: "<< imu_topic << joint_topic<<", and "<<velocity_topic << std::endl;
     // Initialize subscribers with queue size of 1000
     imu_sub_ = nh_->subscribe(imu_topic, 1000, &HuskyComms::imuCallback, this);
 
-    switch(velocity_type) {
-        case 1: // JOINT_STATE
-        {
-            vel_sub_ = nh_->subscribe(velocity_topic, 1000, &HuskyComms::jointStateVelocityCallback, this);
-        }
-            break;
-        case 2: // GPS_VELOCITY
-        {
-            joint_sub_ = nh_->subscribe(joint_topic, 1000, &HuskyComms::jointStateCallback, this);
-            vel_sub_ = nh_->subscribe(velocity_topic, 1000, &HuskyComms::GPSvelocityCallback, this);
-        }
-            break;
-        case 3: // CAMERA_ODOM
-        {
-            joint_sub_ = nh_->subscribe(joint_topic, 1000, &HuskyComms::jointStateCallback, this);
-            vel_sub_ = nh_->subscribe(velocity_topic, 1000, &HuskyComms::CameraOdomCallBack, this);
-        }
-            break;
-        default:
-            std::cout << "Invalid velocity measurement" << std::endl;
+    // velocity from wheel encoders. msg_type: sensor_msgs::JointState
+    if(enable_wheel_vel_){
+        wheel_vel_sub_ = nh_->subscribe(wheel_vel_topic, 1000, &HuskyComms::jointStateVelocityCallback, this);
+    }
+    else{
+        joint_sub_ = nh_->subscribe(joint_topic, 1000, &HuskyComms::jointStateCallback, this);
+    }
+
+    // velocity from camera odometry. msg_type: nav_msgs::Odometry
+    if(enable_camera_vel_){
+        cam_vel_sub_ = nh_->subscribe(camera_vel_topic, 1000, &HuskyComms::CameraOdomCallBack, this);
+    }
+
+    // velocity from GPS. msg_type: geometry_msgs::TwistStamped
+    if(enable_gps_vel_){
+        gps_vel_sub_ = nh_->subscribe(gps_vel_topic, 1000, &HuskyComms::GPSvelocityCallback, this);
     }
 
     // start the subscribing thread
@@ -110,16 +109,16 @@ void HuskyComms::jointStateVelocityCallback(const sensor_msgs::JointState& joint
     std::lock_guard<std::mutex> lock2(husky_data_buffer_->joint_state_mutex);
     husky_data_buffer_->joint_state_q.push(joint_state_ptr);
 
-    std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
-    husky_data_buffer_ -> velocity_q.push(vel_ptr);
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->wheel_vel_mutex);
+    husky_data_buffer_ -> wheel_velocity_q.push(vel_ptr);
         
 }
 
 
 void HuskyComms::GPSvelocityCallback(const geometry_msgs::TwistStamped& vel_msg){
     auto vel_ptr = std::make_shared<husky_inekf::VelocityMeasurement>(vel_msg);
-    std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
-    husky_data_buffer_ -> velocity_q.push(vel_ptr);
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->gps_vel_mutex);
+    husky_data_buffer_ -> gps_velocity_q.push(vel_ptr);
 }
 
 void HuskyComms::CameraOdomCallBack(const nav_msgs::Odometry& camera_odom_msg) {
@@ -161,6 +160,6 @@ void HuskyComms::CameraOdomCallBack(const nav_msgs::Odometry& camera_odom_msg) {
     
     auto vel_ptr = std::make_shared<husky_inekf::VelocityMeasurement>(vel_msg);
 
-    std::lock_guard<std::mutex> lock(husky_data_buffer_->velocity_mutex);
-    husky_data_buffer_ -> velocity_q.push(vel_ptr);
+    std::lock_guard<std::mutex> lock(husky_data_buffer_->cam_vel_mutex);
+    husky_data_buffer_ -> camera_velocity_q.push(vel_ptr);
 }

@@ -53,14 +53,20 @@ class HuskySystem {
         // Most recent data packet
         husky_inekf::JointStateMeasurementPtr joint_state_packet_;
         husky_inekf::ImuMeasurementPtr imu_packet_;
-        husky_inekf::VelocityMeasurementPtr velocity_packet_;
+        husky_inekf::VelocityMeasurementPtr wheel_velocity_packet_;
+        husky_inekf::VelocityMeasurementPtr camera_velocity_packet_;
+        husky_inekf::VelocityMeasurementPtr gps_velocity_packet_;
 
-        int velocity_type_;
+        bool enable_wheel_vel_;
+        bool enable_camera_vel_;
+        bool enable_gps_vel_;
 
         // Update most recent packet to use
         bool updateNextIMU();
         bool updateNextJointState();
-        bool updateNextVelocity();
+        bool updateNextWheelVelocity();
+        bool updateNextCameraVelocity();
+        bool updateNextGPSVelocity();
 
         // Publish output path
         void logPoseTxt(const husky_inekf::HuskyState& state_);
