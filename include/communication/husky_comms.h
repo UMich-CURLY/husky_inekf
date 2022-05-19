@@ -50,9 +50,11 @@ class HuskyComms {
 
         std::thread subscribing_thread_;
 
-        std::vector<double> translation_imu;
-        std::vector<double> rotation_imu;
-        std::vector<double> rotation_body_imu;
+        double wheel_radius_;
+        double vehicle_track_width_;
+
+        std::vector<double> rotation_imu_body_;
+        Eigen::Matrix4d cam_to_body_;
 
         husky_inekf::husky_data_t* husky_data_buffer_;
 

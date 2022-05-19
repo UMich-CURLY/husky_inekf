@@ -42,12 +42,12 @@ namespace husky_inekf {
             }
 
             // Overloaded constructor for construction using ros imu topic
-            ImuMeasurement(const sensor_msgs::Imu& imu_msg, std::vector<double>& rotation_body_imu) {
+            ImuMeasurement(const sensor_msgs::Imu& imu_msg, std::vector<double>& rotation_imu_body) {
 
                 // default is (0, 0.7071, -0.7071, 0)
-                Eigen::Quaternion<double> rotation_body2imu(rotation_body_imu[0],rotation_body_imu[1],rotation_body_imu[2],rotation_body_imu[3]);
-                Eigen::Matrix3d rotation_body_imu_matrix;
-                rotation_body_imu_matrix = rotation_body2imu.toRotationMatrix();
+                Eigen::Quaternion<double> rotation_imu2body(rotation_imu_body[0],rotation_imu_body[1],rotation_imu_body[2],rotation_imu_body[3]);
+                Eigen::Matrix3d rotation_imu_body_matrix;
+                rotation_imu_body_matrix = rotation_imu2body.toRotationMatrix();
 
                 Eigen::Vector3d angular_velocity_imu;
                 angular_velocity_imu << imu_msg.angular_velocity.x,
@@ -59,19 +59,19 @@ namespace husky_inekf {
                                             imu_msg.linear_acceleration.y,
                                             imu_msg.linear_acceleration.z;
 
-                // angular_velocity = (rotation_body_imu_matrix.transpose()*angular_velocity_imu).eval();
+                // angular_velocity = (rotation_imu_body_matrix.transpose()*angular_velocity_imu).eval();
                 
                 angular_velocity = {
-                    (rotation_body_imu_matrix.transpose()*angular_velocity_imu)[0],
-                    (rotation_body_imu_matrix.transpose()*angular_velocity_imu)[1],
-                    (rotation_body_imu_matrix.transpose()*angular_velocity_imu)[2]
+                    (rotation_imu_body_matrix*angular_velocity_imu)[0],
+                    (rotation_imu_body_matrix*angular_velocity_imu)[1],
+                    (rotation_imu_body_matrix*angular_velocity_imu)[2]
                 };
 
                 // linear_acceleration = (rotation_body_imu_matrix.transpose()*linear_acceleration_imu).eval();
                 linear_acceleration = {
-                    (rotation_body_imu_matrix.transpose()*linear_acceleration_imu)[0],
-                    (rotation_body_imu_matrix.transpose()*linear_acceleration_imu)[1],
-                    (rotation_body_imu_matrix.transpose()*linear_acceleration_imu)[2]
+                    (rotation_imu_body_matrix*linear_acceleration_imu)[0],
+                    (rotation_imu_body_matrix*linear_acceleration_imu)[1],
+                    (rotation_imu_body_matrix*linear_acceleration_imu)[2]
                 };
                 
                 // map original orientation estimation from imu to body
@@ -80,7 +80,7 @@ namespace husky_inekf {
                                             imu_msg.orientation.y, 
                                             imu_msg.orientation.z );
                 // std::cout<<"q_original: \n"<<q<<std::endl;
-                Eigen::Quaternion<double> q_body = q * rotation_body2imu;
+                Eigen::Quaternion<double> q_body = q * rotation_imu2body;
                 // std::cout<<"q_body: \n"<<q_body<<std::endl;
                 orientation = { 
                     q_body.w(), 

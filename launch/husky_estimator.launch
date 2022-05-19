@@ -12,8 +12,6 @@
 
     <!-- Run husky estimator publisher -->
     <rosparam file="$(find husky_inekf)/config/settings.yaml" command="load" />
-    <!-- Initialize inEKF params -->
-    <rosparam file="$(find husky_inekf)/config/inekf.yaml" command="load"/>
     <!-- Initialize inEKF noise -->
     <rosparam file="$(find husky_inekf)/config/noise.yaml" command="load"/>
     <!-- Initialize inEKF prior -->

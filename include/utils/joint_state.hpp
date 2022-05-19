@@ -19,10 +19,39 @@ namespace husky_inekf {
                 type_ = JOINT_STATE;
                 encoder_dim_ = ENCODER_DIM;
             }
-
+            
+            // Constructor with default wheel radius
             JointStateMeasurement(  const sensor_msgs::JointState& joint_msg,
                                     unsigned int ENCODER_DIM): 
-                                    encoder_dim_(ENCODER_DIM) {
+                                    encoder_dim_(ENCODER_DIM){
+
+                wheel_radius_ = 0.1651;
+                vehicle_track_width_ = 0.555;
+                type_ = JOINT_STATE;
+                joint_position_.resize(encoder_dim_, 1);
+                joint_velocity_.resize(encoder_dim_, 1);
+                joint_effort_.resize(encoder_dim_, 1);
+                linear_velocity_.resize(encoder_dim_, 1);
+                // TODO: Make this initialization more flexible if necessary
+                body_lin_vel_.resize(3, 1);
+                body_ang_vel_.resize(3, 1);
+                // Initialize Robot State
+                setJointPosition(joint_msg.position);
+                setJointVelocity(joint_msg.velocity);
+                setJointEffort(joint_msg.effort);
+                setLinearVelocity();
+                setBodyVelocity();
+
+                setHeader(joint_msg.header);
+            }
+
+            JointStateMeasurement(  const sensor_msgs::JointState& joint_msg,
+                                    unsigned int ENCODER_DIM,
+                                    double wheel_radius_in,
+                                    double vehicle_track_width_in): 
+                                    encoder_dim_(ENCODER_DIM),
+                                    wheel_radius_(wheel_radius_in),
+                                    vehicle_track_width_(vehicle_track_width_in){
                 type_ = JOINT_STATE;
                 joint_position_.resize(encoder_dim_, 1);
                 joint_velocity_.resize(encoder_dim_, 1);
@@ -100,10 +129,10 @@ namespace husky_inekf {
             }
     
         private:
-            static constexpr double wheel_radius_ = 0.1651;
+            double wheel_radius_;
             // static constexpr double wheel_radius_ = 0.3;
 
-            static constexpr double vehicle_track_width_ = 0.555;
+            double vehicle_track_width_;
             unsigned int encoder_dim_; 
 
             // Joint Encoder Information From Wheels

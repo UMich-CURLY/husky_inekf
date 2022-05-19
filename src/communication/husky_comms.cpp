@@ -11,6 +11,8 @@ HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_da
     nh_->param<std::string>("/settings/imu_topic", imu_topic, "/gx5_0/imu/data");
     nh_->param<std::string>("/settings/joint_topic", joint_topic, "/joint_states");
 
+    nh_->param<double>("/settings/wheel_radius",wheel_radius_,0.1651);
+    nh_->param<double>("/settings/vehicle_track_width",vehicle_track_width_,0.555);
 
     // Velocity Type:
     nh_->param<bool>("/settings/enable_wheel_velocity_update", enable_wheel_vel_, true);
@@ -22,11 +24,24 @@ HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_da
 
     // TODO: Check usage
     // Odom To IMU frame:
-    nh_->param<std::vector<double>>("settings/translation", translation_imu, std::vector<double>({0, 0, 0, 0}));
-    nh_->param<std::vector<double>>("settings/rotation", rotation_imu, std::vector<double>({0, 0, 0, 1}));
+
+    std::vector<double> translation_cam_body;
+    std::vector<double> rotation_cam_body;
+    cam_to_body_ = Eigen::Matrix4d::Identity();
+
+    nh_->param<std::vector<double>>("settings/translation_cam_body", translation_cam_body, std::vector<double>({0, 0, 0}));
+    nh_->param<std::vector<double>>("settings/rotation_cam_body", rotation_cam_body, std::vector<double>({1, 0, 0, 0}));
+
+    Eigen::Quaternion<double> orientation_quat(rotation_cam_body[0],
+                                                rotation_cam_body[1],
+                                                rotation_cam_body[2],
+                                                rotation_cam_body[3]);
+    
+    cam_to_body_.block<3,3>(0,0) = orientation_quat.toRotationMatrix();
+    cam_to_body_.block<3,1>(0,3) = Eigen::Vector3d({translation_cam_body[0], translation_cam_body[1], translation_cam_body[2]});
     
     // Rotation from IMU to body frame. Body frame definition: X forward, Y left, Z up.
-    nh_->param<std::vector<double>>("settings/rotation_body_imu", rotation_body_imu, std::vector<double>({0, 0.7071, -0.7071, 0}));
+    nh_->param<std::vector<double>>("settings/rotation_imu_body", rotation_imu_body_, std::vector<double>({0, 0.7071, -0.7071, 0}));
 
     std::cout<<"subscribing to: "<< imu_topic << joint_topic<<std::endl;
 
@@ -71,7 +86,7 @@ void HuskyComms::sub(){
 void HuskyComms::imuCallback(const sensor_msgs::Imu& imu_msg) 
 {
     auto imu_ptr = 
-        std::make_shared<husky_inekf::ImuMeasurement<double> >(imu_msg, rotation_body_imu);
+        std::make_shared<husky_inekf::ImuMeasurement<double> >(imu_msg, rotation_imu_body_);
 
     std::lock_guard<std::mutex> lock(husky_data_buffer_->imu_mutex);
     husky_data_buffer_->imu_q.push(imu_ptr);
@@ -81,7 +96,7 @@ void HuskyComms::imuCallback(const sensor_msgs::Imu& imu_msg)
 void HuskyComms::jointStateCallback(const sensor_msgs::JointState& joint_msg)
 {   
     auto joint_ptr =
-        std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4);
+        std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4, wheel_radius_, vehicle_track_width_);
 
     std::lock_guard<std::mutex> lock(husky_data_buffer_->joint_state_mutex);
     husky_data_buffer_->joint_state_q.push(joint_ptr);
@@ -90,7 +105,7 @@ void HuskyComms::jointStateCallback(const sensor_msgs::JointState& joint_msg)
 
 void HuskyComms::jointStateVelocityCallback(const sensor_msgs::JointState& joint_msg)
 {   
-    auto joint_state_ptr = std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4);
+    auto joint_state_ptr = std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4, wheel_radius_, vehicle_track_width_);
 
     // set velocity message:
     geometry_msgs::TwistStamped vel_msg;
@@ -122,7 +137,7 @@ void HuskyComms::GPSvelocityCallback(const geometry_msgs::TwistStamped& vel_msg)
 }
 
 void HuskyComms::CameraOdomCallBack(const nav_msgs::Odometry& camera_odom_msg) {
-    auto camera_odom_ptr = std::make_shared<husky_inekf::CameraOdomMeasurement>(camera_odom_msg, translation_imu, rotation_imu);
+    auto camera_odom_ptr = std::make_shared<husky_inekf::CameraOdomMeasurement>(camera_odom_msg);
     
     // We need two odometry data to calculate the velocity
     if (husky_data_buffer_ -> camera_odom_q.empty()) {
@@ -143,7 +158,7 @@ void HuskyComms::CameraOdomCallBack(const nav_msgs::Odometry& camera_odom_msg) {
 
     double time_diff = curr_time - prev_time;
 
-    Eigen::Matrix4d transformation = prev_transformation.inverse() * curr_transformation;
+    Eigen::Matrix4d transformation = cam_to_body_.inverse() * prev_transformation.inverse() * curr_transformation * cam_to_body_;
     Eigen::Matrix4d twist_se3 = transformation.log();
 
     geometry_msgs::TwistStamped vel_msg;

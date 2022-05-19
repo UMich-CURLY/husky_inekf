@@ -6,13 +6,13 @@ PosePublisherNode::PosePublisherNode(ros::NodeHandle* n) : n_(n) {
     // std::string pose_csv_file, init_rot_file;
     std::string pose_topic, pose_frame;
 
-    nh.param<std::string>("pose_topic", pose_topic, "/husky/inekf_estimation/pose");
-    nh.param<std::string>("pose_frame", pose_frame, "/odom");
-    nh.param<double>("publish_rate", publish_rate_, 1000); 
-    nh.param<int>("pose_skip", pose_skip_, 0); 
+    nh.param<std::string>("/settings/pose_topic", pose_topic, "/husky/inekf_estimation/pose");
+    nh.param<std::string>("/settings/map_frame_id", pose_frame, "/odom");
+    nh.param<double>("/settings/publish_rate", publish_rate_, 1000); 
+    nh.param<int>("/settings/pose_skip", pose_skip_, 0); 
     first_pose_ = {0, 0, 0};
     // first_pose_ = pose_from_csv_.front();
-    std::cout<<"first pose is: "<<first_pose_[0]<<", "<<first_pose_[1]<<", "<<first_pose_[2]<<std::endl;
+    // std::cout<<"first pose is: "<<first_pose_[0]<<", "<<first_pose_[1]<<", "<<first_pose_[2]<<std::endl;
     pose_frame_ = pose_frame;
     
     pose_pub_ = n_->advertise<geometry_msgs::PoseWithCovarianceStamped>(pose_topic, 1000);

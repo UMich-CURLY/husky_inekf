@@ -1,25 +1,39 @@
 settings:
-  initialize_state_from_first_observation: false
-  imu_topic: "/gx5_1/imu/data" # "/gx5_0/imu/data", "/carla/ego_vehicle/imu", "imu_with_noise", "/imu/data"
-  joint_topic: "/joint_states"
-  map_frame_id : "/odom"
-  base_frame_id: "/husky/imu" 
-  pose_topic: "/husky/inekf_estimation/pose"
-  state_topic: "/husky/inekf_state"
-  visualization_markers_topic: "/husky/markers"
-  enable_kinematics: true
-  flat_ground: false
 
-  # "/joint_states", "/gps/vel", "/zed_node/odom", "/carla/ego_vehicle/odometry", "carla_velocity"
+  imu_topic: "/gx5_0/imu/data" 
+  joint_topic: "/joint_states"
+  
+  ###############################################################################
+  # Velocity update flags. We use body velocity to correct the filter. 
+  # We provide 3 different message types for body velocity input:
+  # sensor_msgs::JointState, nav_msgs::Odometry, and geometry_msgs::TwistStamped
+  ###############################################################################
+
+  # Enable correction using body velocity estimated from wheel encoders
+  # Input message type: sensor_msgs::JointState
+  # We use v_wheel = angluar_velocity * wheel_radius. v_body = (v_right_wheel + v_left_wheel)/2.
   enable_wheel_velocity_update: true
   wheel_velocity_topic: "/joint_states"
-  enable_camera_velocity_update: true
+  wheel_radius: 0.1651    # wheel radius (m). 
+  vehicle_track_width: 0.555  # distance between right and left wheel (m).
+
+  # Enable correction using body velocity estimated from camera odometry
+  # Input message type: nav_msgs::Odometry
+  # Note: The input source does not necessary need to be coming from camera odometry.
+  # This correction works for any body velocity input published in nav_msgs::Odometry
+  enable_camera_velocity_update: false
   camera_velocity_topic: "/zed_node/odom"
+
+  # Enable correction using body velocity estimated from GPS
+  # Input message type: geometry_msgs::TwistStamped
+  # Note: The input source does not necessary need to be coming from GPS.
+  # This correction works for any body velocity input published in geometry_msgs::TwistStamped
+  
   enable_gps_velocity_update: false
   gps_velocity_topic: "/gps/vel"
 
+
   # Body Estimator
-  estimator_publish_visualization_markers: true
   estimator_enable_debug: false
   estimator_static_bias_initialization: true
   estimator_init_bias_using_orientation_est_from_imu: true
@@ -36,16 +50,21 @@ settings:
   system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_bias_est.txt"
   system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_vel_input.txt"
   system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_imu.txt"
-  system_velocity_type: 1
 
-  # Path Publisher
+
+  # publisher
+  map_frame_id : "/odom"
+  base_frame_id: "/husky/imu" 
   pose_topic: "/husky/inekf_estimation/pose"
   path_topic: "/husky/inekf_estimation/path"
   publish_rate: 1000
   pose_skip: 1
   
-  
+
+
   rotation_body_imu: [0, 0.7071, -0.7071, 0] # Quaternion [w,x,y,z]
+  rotation_cam_imu: [1,0,0,0]
+  translation_cam_imu: [0,0,0]
 
   # odom_to_imu
   # Husky:
