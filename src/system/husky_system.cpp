@@ -14,9 +14,7 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
 
     // Initialize inekf pose file printouts
     nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
-        "husky_inekf_kitti_pose.txt");
-    nh_->param<std::string>("/settings/system_inekf_tum_pose_filename", tum_file_name_, 
-        "husky_inekf_tum_pose.txt");
+        "husky_inekf_pose.txt");
     nh_->param<std::string>("/settings/system_inekf_vel_est_file_name", vel_est_file_name_, 
         "vel_est.txt");
     nh_->param<std::string>("/settings/system_inekf_bias_est_file_name", bias_est_file_name_, 
@@ -27,14 +25,12 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
         "imu.txt");
 
     outfile_.open(file_name_,std::ofstream::out);
-    tum_outfile_.open(tum_file_name_, std::ofstream::out);
     vel_est_outfile_.open(vel_est_file_name_, std::ofstream::out);
     bias_est_outfile_.open(bias_est_file_name_, std::ofstream::out);
     vel_input_outfile_.open(vel_input_file_name_, std::ofstream::out);
     imu_outfile_.open(imu_file_name_,std::ofstream::out);
 
     outfile_.precision(20);
-    tum_outfile_.precision(20);
     vel_est_outfile_.precision(20);
     bias_est_outfile_.precision(20);
     vel_input_outfile_.precision(20);
@@ -58,7 +54,6 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
 HuskySystem::~HuskySystem(){
     std::cout << "Ready to close Husky system" << std::endl;
     outfile_.close();
-    tum_outfile_.close();
     vel_est_outfile_.close();
     bias_est_outfile_.close();
     vel_input_outfile_.close();
@@ -173,11 +168,8 @@ void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
         // ROS_INFO_STREAM("write new pose\n");
         double t = state_.getTime();
 
-        // log pose kitti style
-        outfile_ << "1 0 0 "<< state_.x() <<" 0 1 0 "<< state_.y() <<" 0 0 1 "<< state_.z() <<std::endl<<std::flush;
-
         // log pose tum style
-        tum_outfile_ << t << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
+        outfile_ << t << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
         <<" "<< state_.getQuaternion().y() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;    
 
         // log estimated velocity

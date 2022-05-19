@@ -1,6 +1,6 @@
 settings:
 
-  imu_topic: "/gx5_0/imu/data" 
+  imu_topic: "/gx5_1/imu/data" 
   joint_topic: "/joint_states"
   
   ###############################################################################
@@ -28,7 +28,6 @@ settings:
   # Input message type: geometry_msgs::TwistStamped
   # Note: The input source does not necessary need to be coming from GPS.
   # This correction works for any body velocity input published in geometry_msgs::TwistStamped
-  
   enable_gps_velocity_update: false
   gps_velocity_topic: "/gps/vel"
 
@@ -42,14 +41,14 @@ settings:
   # Husky System
   system_enable_pose_publisher: true
   system_enable_pose_logger: true
-  system_enable_debug_logger: true
   system_log_pose_skip: 0
-  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_husky_inekf_pose_kitti.txt"
-  system_inekf_tum_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_husky_inekf_pose_tum.txt"
-  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_vel_est.txt"
-  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_bias_est.txt"
-  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_vel_input.txt"
-  system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/04_cam_imu.txt"
+  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_husky_inekf_pose.txt"
+
+  system_enable_debug_logger: true
+  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_est.txt"
+  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_bias_est.txt"
+  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_input.txt"
+  system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_imu.txt"
 
 
   # publisher
