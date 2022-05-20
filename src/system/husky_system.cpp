@@ -171,7 +171,7 @@ void HuskySystem::logPoseTxt(const husky_inekf::HuskyState& state_) {
         // log pose tum style
         outfile_ << t << " "<< state_.x()<<" "<< state_.y() << " "<<state_.z() << " "<<state_.getQuaternion().x()\
         <<" "<< state_.getQuaternion().y() <<" "<< state_.getQuaternion().z() <<" "<< state_.getQuaternion().w() <<std::endl<<std::flush;    
-
+        
         // log estimated velocity
         auto vel_est = state_.getWorldVelocity();
         vel_est_outfile_ << t << " " << vel_est(0) << " " << vel_est(1) << " " << vel_est(2)<<std::endl<<std::flush;

@@ -43,10 +43,10 @@ settings:
   system_enable_pose_logger: true
   system_log_pose_skip: 0
   system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_husky_inekf_pose.txt"
-
-  system_enable_debug_logger: true
   system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_est.txt"
   system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_bias_est.txt"
+
+  system_enable_debug_logger: true
   system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_input.txt"
   system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_imu.txt"
 

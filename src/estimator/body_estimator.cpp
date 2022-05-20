@@ -165,10 +165,8 @@ void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_i
         Eigen::Vector3d v = estimate.getVelocity();
         Eigen::Vector3d bias = estimate.getTheta();
 
-        /// DELETE:
         Eigen::Vector3d gyro_bias = estimate.getGyroscopeBias();
         Eigen::Vector3d acc_bias = estimate.getAccelerometerBias();
-
         bias_outfile_ << t << "\n" << gyro_bias << "\n" << acc_bias << std::endl;
 
         state.setBaseRotation(R);
@@ -277,7 +275,7 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
     initial_state.setPositionCovariance(0.00001*Eigen::Matrix3d::Identity());
     initial_state.setGyroscopeBiasCovariance(0.0001*Eigen::Matrix3d::Identity());
     initial_state.setAccelerometerBiasCovariance(0.0025*Eigen::Matrix3d::Identity());
-
+    
     filter_.setState(initial_state);
     std::cout << "Robot's state mean is initialized to: \n";
     std::cout << filter_.getState() << std::endl;
@@ -286,12 +284,14 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
 
     // Set enabled flag
     t_prev_ = imu_packet_in.getTime();
+    state.setTime(t_prev_);
     imu_prev_ << imu_packet_in.angular_velocity.x, 
                 imu_packet_in.angular_velocity.y, 
                 imu_packet_in.angular_velocity.z;
                 imu_packet_in.linear_acceleration.x,
                 imu_packet_in.linear_acceleration.y,
-                imu_packet_in.linear_acceleration.z;;
+                imu_packet_in.linear_acceleration.z;
+
     enabled_ = true;
 }
 
@@ -339,12 +339,13 @@ void BodyEstimator::initState(const ImuMeasurement<double>& imu_packet_in,
 
     // Set enabled flag
     t_prev_ = imu_packet_in.getTime();
+    state.setTime(t_prev_);
     imu_prev_ << imu_packet_in.angular_velocity.x, 
                 imu_packet_in.angular_velocity.y, 
                 imu_packet_in.angular_velocity.z;
                 imu_packet_in.linear_acceleration.x,
                 imu_packet_in.linear_acceleration.y,
-                imu_packet_in.linear_acceleration.z;;
+                imu_packet_in.linear_acceleration.z;
     enabled_ = true;
 }
 
