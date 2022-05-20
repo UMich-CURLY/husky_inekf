@@ -23,8 +23,6 @@ void removeRowAndColumn(Eigen::MatrixXd& M, int index);
 InEKF::InEKF() : 
     g_((Eigen::VectorXd(3) << 0,0,-9.81).finished()), 
     magnetic_field_((Eigen::VectorXd(3) << 0,0,0).finished()) {
-        /// DELETE:
-        dTheta_out.open(dTheta_out_path);
     }
 
 // Constructor with noise params
@@ -32,8 +30,6 @@ InEKF::InEKF(NoiseParams params) :
     g_((Eigen::VectorXd(3) << 0,0,-9.81).finished()), 
     magnetic_field_((Eigen::VectorXd(3) << std::cos(1.2049),0,std::sin(1.2049)).finished()), 
     noise_params_(params) {
-        /// DELETE:
-        dTheta_out.open(dTheta_out_path);
     }
 
 // Constructor with initial state
@@ -41,8 +37,6 @@ InEKF::InEKF(RobotState state) :
     g_((Eigen::VectorXd(3) << 0,0,-9.81).finished()), 
     magnetic_field_((Eigen::VectorXd(3) << std::cos(1.2049),0,std::sin(1.2049)).finished()), 
     state_(state) {
-        /// DELETE:
-        dTheta_out.open(dTheta_out_path);
     }
 
 // Constructor with initial state and noise params
@@ -51,8 +45,6 @@ InEKF::InEKF(RobotState state, NoiseParams params) :
     magnetic_field_((Eigen::VectorXd(3) << std::cos(1.2049),0,std::sin(1.2049)).finished()), 
     state_(state), 
     noise_params_(params) {
-        /// DELETE:
-        dTheta_out.open(dTheta_out_path);
     }
 
 // Constructor with initial state, noise params, and error type
@@ -62,8 +54,6 @@ InEKF::InEKF(RobotState state, NoiseParams params, ErrorType error_type) :
     state_(state), 
     noise_params_(params), 
     error_type_(error_type) {
-        /// DELETE:
-        dTheta_out.open(dTheta_out_path);
     }
 
 // Clear all data in the filter
@@ -77,7 +67,6 @@ void InEKF::clear() {
 }
 
 InEKF::~InEKF() {
-    dTheta_out.close();
 }
 
 // Returns the robot's current error type
@@ -381,7 +370,6 @@ void InEKF::CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixX
     // dTheta *= alpha;
     /// REMARK: set yaw bias derivative estimation to 0
     dTheta(2) = 0;
-    // dTheta_out << dTheta << std::endl;
     // std::cout << dTheta << "\n" << std::endl;
     Eigen::VectorXd Theta_new = Theta + dTheta;
 

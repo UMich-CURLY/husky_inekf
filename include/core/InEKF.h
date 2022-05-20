@@ -236,9 +236,7 @@ the default.
         void CorrectLeftInvariant(const Observation& obs);
         void CorrectRightInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixXd& H, const Eigen::MatrixXd& N);
         void CorrectLeftInvariant(const Eigen::MatrixXd& Z, const Eigen::MatrixXd& H, const Eigen::MatrixXd& N);
-        // void CorrectFullState(const Observation& obs); // TODO
-        std::string dTheta_out_path = "/home/tingjun/Desktop/Husky/catkin_ws/dTheta.txt";
-        std::ofstream dTheta_out;
+        // void CorrectFullState(const Observation& obs); 
 };
 
 } // end inekf namespace

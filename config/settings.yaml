@@ -1,13 +1,13 @@
 settings:
 
-  imu_topic: "/gx5_1/imu/data" 
-  joint_topic: "/joint_states"
+  imu_topic: "/gx5_1/imu/data"  # input imu topic
+  joint_topic: "/joint_states"  # input wheel encoder topic
   
-  ###############################################################################
-  # Velocity update flags. We use body velocity to correct the filter. 
-  # We provide 3 different message types for body velocity input:
-  # sensor_msgs::JointState, nav_msgs::Odometry, and geometry_msgs::TwistStamped
-  ###############################################################################
+  ################################################################################
+  # Velocity update flags. We use body velocity to correct the filter.           #
+  # We provide support for 3 different message types for body velocity input:    #
+  # sensor_msgs::JointState, nav_msgs::Odometry, and geometry_msgs::TwistStamped #
+  ################################################################################
 
   # Enable correction using body velocity estimated from wheel encoders
   # Input message type: sensor_msgs::JointState
@@ -18,6 +18,7 @@ settings:
   vehicle_track_width: 0.555  # distance between right and left wheel (m).
 
   # Enable correction using body velocity estimated from camera odometry
+  # The filter will take the difference between two pose and compute the velocity from it.
   # Input message type: nav_msgs::Odometry
   # Note: The input source does not necessary need to be coming from camera odometry.
   # This correction works for any body velocity input published in nav_msgs::Odometry
@@ -31,27 +32,44 @@ settings:
   enable_gps_velocity_update: false
   gps_velocity_topic: "/gps/vel"
 
-
-  # Body Estimator
+  ###################
+  # Filter Settings #
+  ###################
+  static_bias_initialization: true
+  init_bias_using_orientation_est_from_imu: true
+  velocity_time_threshold: 0.5
   estimator_enable_debug: false
-  estimator_static_bias_initialization: true
-  estimator_init_bias_using_orientation_est_from_imu: true
-  estimator_velocity_time_threshold: 0.5
 
-  # Husky System
-  system_enable_pose_publisher: true
-  system_enable_pose_logger: true
-  system_log_pose_skip: 0
-  system_inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_husky_inekf_pose.txt"
-  system_inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_est.txt"
-  system_inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_bias_est.txt"
+  ########################
+  # Orientation Settings #
+  ########################
+  # We assume the body frame to be at the imu position.
+  # X pointing forward, Y to the left, Z pointing up.
+  rotation_body_imu: [0, 0.7071, -0.7071, 0] # Orientation from IMU to the body frame. Quaternion [w,x,y,z]
+  rotation_cam_imu: [1,0,0,0]                # Orientation from camera to the body frame. Quaternion [w,x,y,z]
+  translation_cam_imu: [0,0,0]               # Translation from camera to the body frame. [x,y,z]
 
-  system_enable_debug_logger: true
-  system_inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_input.txt"
-  system_inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_imu.txt"
+  ##############
+  #   Logger   #
+  ##############
+  # Enable this the program will record the pose, velocity, and bias estimated by the filter. 
+  enable_pose_logger: true
+  log_pose_skip: 0    # Number of pose to be skipped while recording. Ex. Set to 100 the program will record every 100 poses.
+  inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_husky_inekf_pose.txt"
+  inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_est.txt"
+  inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_bias_est.txt"
+
+  # Debug Logger
+  # Enable this the program will record the inputed velocity and imu.
+  enable_debug_logger: true
+  inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_input.txt"
+  inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_imu.txt"
 
 
-  # publisher
+  ######################
+  # ROS pose publisher #
+  ######################
+  enable_pose_publisher: true
   map_frame_id : "/odom"
   base_frame_id: "/husky/imu" 
   pose_topic: "/husky/inekf_estimation/pose"
@@ -59,16 +77,3 @@ settings:
   publish_rate: 1000
   pose_skip: 1
   
-
-
-  rotation_body_imu: [0, 0.7071, -0.7071, 0] # Quaternion [w,x,y,z]
-  rotation_cam_imu: [1,0,0,0]
-  translation_cam_imu: [0,0,0]
-
-  # odom_to_imu
-  # Husky:
-  # translation:  [-66.465, 28.652, 0.132]
-  # roataion: [0.000, 0.000, -0.471, 0.882] # Quaternion
-  # Carla:
-  # translation: [0, 0, 0]
-  # rotation: [0, 0, 0, 1]

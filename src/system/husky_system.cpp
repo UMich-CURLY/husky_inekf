@@ -12,29 +12,20 @@
 HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_data_buffer): 
     nh_(nh), husky_data_buffer_(husky_data_buffer), pose_publisher_node_(nh), new_pose_ready_(false) {
 
-    // Initialize inekf pose file printouts
-    nh_->param<std::string>("/settings/system_inekf_pose_filename", file_name_, 
-        "husky_inekf_pose.txt");
-    nh_->param<std::string>("/settings/system_inekf_vel_est_file_name", vel_est_file_name_, 
-        "vel_est.txt");
-    nh_->param<std::string>("/settings/system_inekf_bias_est_file_name", bias_est_file_name_, 
-        "bias_est.txt");
-    nh_->param<std::string>("/settings/system_inekf_vel_input_file_name", vel_input_file_name_, 
-        "vel_input.txt");
-    nh_->param<std::string>("/settings/system_inekf_imu_file_name", imu_file_name_, 
-        "imu.txt");
+    // initialize velocity noise
+    // TODO: integrate them into noiseParams
+    double std;
+    // wheel velocity covariance
+    nh_->param<double>("/noise/wheel_vel_std", std, 0.05);
+    wheel_vel_cov_ = std * std * Eigen::Matrix<double,3,3>::Identity();
+    
+    // camera velocity covariance
+    nh_->param<double>("/noise/camera_vel_std", std, 0.05);
+    camera_vel_cov_ = std * std * Eigen::Matrix<double,3,3>::Identity();
 
-    outfile_.open(file_name_,std::ofstream::out);
-    vel_est_outfile_.open(vel_est_file_name_, std::ofstream::out);
-    bias_est_outfile_.open(bias_est_file_name_, std::ofstream::out);
-    vel_input_outfile_.open(vel_input_file_name_, std::ofstream::out);
-    imu_outfile_.open(imu_file_name_,std::ofstream::out);
-
-    outfile_.precision(20);
-    vel_est_outfile_.precision(20);
-    bias_est_outfile_.precision(20);
-    vel_input_outfile_.precision(20);
-    imu_outfile_.precision(20);
+    // gps velocity covariance
+    nh_->param<double>("/noise/gps_vel_std", std,0.05); 
+    gps_vel_cov_ = std * std * Eigen::Matrix<double,3,3>::Identity();
 
     // set velocity update methods
     nh_->param<bool>("/settings/enable_wheel_velocity_update", enable_wheel_vel_, true);
@@ -42,10 +33,36 @@ HuskySystem::HuskySystem(ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_d
     nh_->param<bool>("/settings/enable_gps_velocity_update", enable_gps_vel_, false);
 
     // Initialize pose publishing if requested
-    nh_->param<bool>("/settings/system_enable_pose_publisher", enable_pose_publisher_, false);
-    nh_->param<bool>("/settings/system_enable_pose_logger", enable_pose_logger_, false);
-    nh_->param<bool>("/settings/system_enable_debug_logger", enable_debug_logger_, false);
-    nh_->param<int>("/settings/system_log_pose_skip", log_pose_skip_, 100);
+    nh_->param<bool>("/settings/enable_pose_publisher", enable_pose_publisher_, false);
+    nh_->param<bool>("/settings/enable_pose_logger", enable_pose_logger_, false);
+    nh_->param<bool>("/settings/enable_debug_logger", enable_debug_logger_, false);
+    nh_->param<int>("/settings/log_pose_skip", log_pose_skip_, 100);
+
+    // Initialize inekf pose file printouts
+    nh_->param<std::string>("/settings/inekf_pose_filename", file_name_, 
+        "husky_inekf_pose.txt");
+    nh_->param<std::string>("/settings/inekf_vel_est_file_name", vel_est_file_name_, 
+        "vel_est.txt");
+    nh_->param<std::string>("/settings/inekf_bias_est_file_name", bias_est_file_name_, 
+        "bias_est.txt");
+    nh_->param<std::string>("/settings/inekf_vel_input_file_name", vel_input_file_name_, 
+        "vel_input.txt");
+    nh_->param<std::string>("/settings/inekf_imu_file_name", imu_file_name_, 
+        "imu.txt");
+
+    outfile_.open(file_name_,std::ofstream::out);
+    vel_est_outfile_.open(vel_est_file_name_, std::ofstream::out);
+    bias_est_outfile_.open(bias_est_file_name_, std::ofstream::out);
+    outfile_.precision(20);
+    vel_est_outfile_.precision(20);
+    bias_est_outfile_.precision(20);
+
+    if(enable_debug_logger_){
+        vel_input_outfile_.open(vel_input_file_name_, std::ofstream::out);
+        imu_outfile_.open(imu_file_name_,std::ofstream::out);
+        vel_input_outfile_.precision(20);
+        imu_outfile_.precision(20);
+    }
 
     last_imu_time_ = 0;
     skip_count_ = 0;
@@ -83,7 +100,7 @@ void HuskySystem::step() {
 
         // update using body velocity from wheel encoders
         if (enable_wheel_vel_ && updateNextWheelVelocity()) {
-            estimator_.correctVelocity(*(wheel_velocity_packet_.get()),state_);
+            estimator_.correctVelocity(*(wheel_velocity_packet_.get()),state_,wheel_vel_cov_);
             new_pose_ready_ = true;
 
 
@@ -96,7 +113,7 @@ void HuskySystem::step() {
 
         // update using camera velocity
         if (enable_camera_vel_ && updateNextCameraVelocity()) {
-            estimator_.correctVelocity(*(camera_velocity_packet_.get()),state_);
+            estimator_.correctVelocity(*(camera_velocity_packet_.get()),state_, camera_vel_cov_);
             new_pose_ready_ = true;
 
             // record 
@@ -108,7 +125,7 @@ void HuskySystem::step() {
         
         // update using gps velocity
         if (enable_gps_vel_ && updateNextGPSVelocity()) {
-            estimator_.correctVelocity(*(gps_velocity_packet_.get()),state_);
+            estimator_.correctVelocity(*(gps_velocity_packet_.get()),state_, gps_vel_cov_);
             new_pose_ready_ = true;
 
             // record 

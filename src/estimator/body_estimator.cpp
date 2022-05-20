@@ -5,23 +5,16 @@ namespace husky_inekf{
 BodyEstimator::BodyEstimator() :
     t_prev_(0), imu_prev_(Eigen::Matrix<double,6,1>::Zero()) {
     
-    /// DELETE:
-    std::string bias_file_name_ = "/home/tingjun/Desktop/Husky/catkin_ws/bias_vs_time.txt";
-    bias_outfile_.open(bias_file_name_,std::ofstream::out);
-    bias_outfile_.precision(20);
 
     // Create private node handle
     ros::NodeHandle nh("~");
     // Set debug output
     nh.param<bool>("/settings/estimator_enable_debug", estimator_debug_enabled_, false);
     // Settings
-    nh.param<bool>("/settings/estimator_static_bias_initialization", static_bias_initialization_, false);
-    nh.param<bool>("/settings/estimator_init_bias_using_orientation_est_from_imu", use_imu_ori_est_init_bias_, false);
-
-    nh.param<double>("/settings/estimator_velocity_time_threshold",velocity_t_thres_,0.1);
+    nh.param<bool>("/settings/static_bias_initialization", static_bias_initialization_, false);
+    nh.param<bool>("/settings/init_bias_using_orientation_est_from_imu", use_imu_ori_est_init_bias_, false);
+    nh.param<double>("/settings/velocity_time_threshold",velocity_t_thres_,0.1);
     
-    
-
     inekf::NoiseParams params;
     double std;
     if (nh.getParam("/noise/gyroscope_std", std)) { 
@@ -36,19 +29,11 @@ BodyEstimator::BodyEstimator() :
     if (nh.getParam("/noise/accelerometer_bias_std", std)) { 
         params.setAccelerometerBiasNoise(std);
     }
-    if (nh.getParam("/noise/velocity_std", std)) { 
-        velocity_cov_ = std * std * Eigen::Matrix<double,3,3>::Identity();
-    }
-    else{
-        velocity_cov_ = 0.05 * 0.05 * Eigen::Matrix<double,3,3>::Identity();
-    }
 
     filter_.setNoiseParams(params);
     
     std::cout << "Noise parameters are initialized to: \n";
     std::cout << filter_.getNoiseParams() << std::endl;
-    std::cout << "Velocity covariance is initialzed to: \n";
-    std::cout << velocity_cov_ <<std::endl;
     
     // load bias prior
     std::vector<double> bg0, ba0;
@@ -60,8 +45,7 @@ BodyEstimator::BodyEstimator() :
 }
 
 BodyEstimator::~BodyEstimator() {
-    /// DELETE:
-    bias_outfile_.close();
+
 }
 
 bool BodyEstimator::biasInitialized() { return bias_initialized_; }
@@ -121,13 +105,13 @@ void BodyEstimator::propagateIMU(const ImuMeasurement<double>& imu_packet_in, Hu
 }
 
 // correctvelocity 
-void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_packet_in, HuskyState& state){
+void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_packet_in, HuskyState& state, const Eigen::Matrix<double,3,3>& velocity_cov){
 
     double t = joint_state_packet_in.getTime();
 
     if(std::abs(t-state.getTime())<velocity_t_thres_){
         Eigen::Vector3d measured_velocity = joint_state_packet_in.getBodyLinearVelocity();
-        filter_.CorrectVelocity(measured_velocity, velocity_cov_);
+        filter_.CorrectVelocity(measured_velocity, velocity_cov);
 
         
         inekf::RobotState estimate = filter_.getState();
@@ -150,13 +134,13 @@ void BodyEstimator::correctVelocity(const JointStateMeasurement& joint_state_pac
     }
 }
 
-void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_in, HuskyState& state){
+void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_in, HuskyState& state, const Eigen::Matrix<double,3,3>& velocity_cov){
 
     double t = velocity_packet_in.getTime();
 
     if(std::abs(t-state.getTime())<velocity_t_thres_){
         Eigen::Vector3d measured_velocity = velocity_packet_in.getLinearVelocity();
-        filter_.CorrectVelocity(measured_velocity, velocity_cov_);
+        filter_.CorrectVelocity(measured_velocity, velocity_cov);
 
         
         inekf::RobotState estimate = filter_.getState();
@@ -167,7 +151,6 @@ void BodyEstimator::correctVelocity(const VelocityMeasurement& velocity_packet_i
 
         Eigen::Vector3d gyro_bias = estimate.getGyroscopeBias();
         Eigen::Vector3d acc_bias = estimate.getAccelerometerBias();
-        bias_outfile_ << t << "\n" << gyro_bias << "\n" << acc_bias << std::endl;
 
         state.setBaseRotation(R);
         state.setBasePosition(p);

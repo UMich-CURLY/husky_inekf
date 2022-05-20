@@ -60,6 +60,9 @@ class HuskySystem {
         bool enable_wheel_vel_;
         bool enable_camera_vel_;
         bool enable_gps_vel_;
+        Eigen::Matrix<double,3,3> wheel_vel_cov_;
+        Eigen::Matrix<double,3,3> camera_vel_cov_;
+        Eigen::Matrix<double,3,3> gps_vel_cov_;
 
         // Update most recent packet to use
         bool updateNextIMU();
