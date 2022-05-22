@@ -1,6 +1,4 @@
 # husky_inekf
-
-# cheetah_inekf_realtime
 This project contains a Invariant Kalman Filter system for wheeled robot state estimation. The InEKF takes in IMU measurements and body velocity estimation and estimate the robot's pose, velocity, and IMU biases.
 
 ## Dependencies
@@ -91,7 +89,7 @@ We provide functions to log the estimated pose, velocity, and biases.
   
 
 
-## Visualizing InEKF in Rviz
+## Visualize InEKF in Rviz
 1. Start running the husky estimator using the instructions above
 2. Enter `rviz` in the terminal
 2. Select `Add by topic` setting and select path
