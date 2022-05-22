@@ -35,9 +35,17 @@ settings:
   ###################
   # Filter Settings #
   ###################
-  static_bias_initialization: true
-  init_bias_using_orientation_est_from_imu: true
-  velocity_time_threshold: 0.5
+  static_bias_initialization: false   # Enable this the filter will use the first 250 data points
+                                      # to initialize bias with the assumption of robot being static.
+                                      # If you set this to false, remember to also change the bias
+                                      # prior in config/prior.yaml.
+  init_bias_using_orientation_est_from_imu: false # Enable this the filter will use the orientation
+                                                  # estimated from the imu to initialize bias. 
+                                                  # Setting this to false the filter will assume
+                                                  # the robot to be horizontally static (gravity pointing
+                                                  # downwards) to initialize the filter.   
+  velocity_time_threshold: 0.5        # Threshold for time difference between the received velocity message
+                                      # and current time. (sec) 
   estimator_enable_debug: false
 
   ########################
@@ -55,15 +63,15 @@ settings:
   # Enable this the program will record the pose, velocity, and bias estimated by the filter. 
   enable_pose_logger: true
   log_pose_skip: 0    # Number of pose to be skipped while recording. Ex. Set to 100 the program will record every 100 poses.
-  inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_husky_inekf_pose.txt"
-  inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_est.txt"
-  inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_bias_est.txt"
+  inekf_pose_filename: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2022-05-11_mair/MAir_0511_trial1_to_9_no_init_bias/08/08_inekf_wheel_vel.txt"
+  inekf_vel_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2022-05-11_mair/MAir_0511_trial1_to_9_no_init_bias/08/08_wheel_vel_est.txt"
+  inekf_bias_est_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2022-05-11_mair/MAir_0511_trial1_to_9_no_init_bias/08/08_wheel_bias_est.txt"
 
   # Debug Logger
   # Enable this the program will record the inputed velocity and imu.
   enable_debug_logger: true
-  inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_vel_input.txt"
-  inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2021-05-02_MAir/04_test_imu.txt"
+  inekf_vel_input_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2022-05-11_mair/MAir_0511_trial1_to_9_no_init_bias/08/08_wheel_vel_input.txt"
+  inekf_imu_file_name: "/home/justin/code/husky_inekf_ws/catkin_ws/src/husky_inekf/data/2022-05-11_mair/MAir_0511_trial1_to_9_no_init_bias/08/08_wheel_imu.txt"
 
 
   ######################
