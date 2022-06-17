@@ -27,6 +27,7 @@ namespace husky_inekf {
 
                 wheel_radius_ = 0.1651;
                 vehicle_track_width_ = 0.555;
+                vehicle_length_ = 0.540;
                 type_ = JOINT_STATE;
                 joint_position_.resize(encoder_dim_, 1);
                 joint_velocity_.resize(encoder_dim_, 1);
@@ -48,10 +49,12 @@ namespace husky_inekf {
             JointStateMeasurement(  const sensor_msgs::JointState& joint_msg,
                                     unsigned int ENCODER_DIM,
                                     double wheel_radius_in,
-                                    double vehicle_track_width_in): 
+                                    double vehicle_track_width_in,
+                                    double vehicle_length_in): 
                                     encoder_dim_(ENCODER_DIM),
                                     wheel_radius_(wheel_radius_in),
-                                    vehicle_track_width_(vehicle_track_width_in){
+                                    vehicle_track_width_(vehicle_track_width_in),
+                                    vehicle_length_(vehicle_length_in){
                 type_ = JOINT_STATE;
                 joint_position_.resize(encoder_dim_, 1);
                 joint_velocity_.resize(encoder_dim_, 1);
@@ -100,8 +103,8 @@ namespace husky_inekf {
 
                 double vr = (linear_velocity_(1) + linear_velocity_(3)) / 2.0;
                 double vl = (linear_velocity_(0) + linear_velocity_(2)) / 2.0;
-                body_lin_vel_(0) = (vr + vl) / 2.0; // [x y z]
-                body_ang_vel_(2) = (vr - vl) / vehicle_track_width_; // [dx dy dz]
+                body_lin_vel_(0) = (vr + vl) / 2.0 ; // [x y z]
+                body_ang_vel_(2) = (vr - vl) / vehicle_track_width_* np.cos(np.arctan(vehicle_length_/vehicle_track_width_))**2; // [dx dy dz]
             }
 
             inline const Eigen::VectorXd& getJointPosition() const {
@@ -133,6 +136,7 @@ namespace husky_inekf {
             // static constexpr double wheel_radius_ = 0.3;
 
             double vehicle_track_width_;
+            double vehicle_length_;
             unsigned int encoder_dim_; 
 
             // Joint Encoder Information From Wheels

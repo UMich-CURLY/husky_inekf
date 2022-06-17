@@ -44,6 +44,8 @@ The program support simultaneously correction from 3 different velocity topics. 
   
     * `vehicle_track_width`: Distance between right and left wheel (m).
 
+    * `vehicle_length`: 0.540 # distance between forward and back wheel centers (m).
+
   * Velocity from camera odometry. (`nav_msgs::Odometry`).
   
     * `enable_camera_velocity_update`: Enable this, the filter will take the difference between two pose and compute the velocity from it.

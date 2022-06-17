@@ -16,6 +16,7 @@ settings:
   wheel_velocity_topic: "/joint_states"
   wheel_radius: 0.1651    # wheel radius (m). 
   vehicle_track_width: 0.555  # distance between right and left wheel (m).
+  vehicle_length: 0.540 # distance between forward and back wheel centers (m).
 
   # Enable correction using body velocity estimated from camera odometry
   # The filter will take the difference between two pose and compute the velocity from it.

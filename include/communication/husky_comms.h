@@ -52,6 +52,7 @@ class HuskyComms {
 
         double wheel_radius_;
         double vehicle_track_width_;
+        double vehicle_length_;
 
         std::vector<double> rotation_imu_body_;
         Eigen::Matrix4d cam_to_body_;

@@ -13,6 +13,7 @@ HuskyComms::HuskyComms( ros::NodeHandle* nh, husky_inekf::husky_data_t* husky_da
 
     nh_->param<double>("/settings/wheel_radius",wheel_radius_,0.1651);
     nh_->param<double>("/settings/vehicle_track_width",vehicle_track_width_,0.555);
+    nh_->param<double>("/settings/vehicle_length",vehicle_length_,0.540);
 
     // Velocity Type:
     nh_->param<bool>("/settings/enable_wheel_velocity_update", enable_wheel_vel_, true);
@@ -96,7 +97,7 @@ void HuskyComms::imuCallback(const sensor_msgs::Imu& imu_msg)
 void HuskyComms::jointStateCallback(const sensor_msgs::JointState& joint_msg)
 {   
     auto joint_ptr =
-        std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4, wheel_radius_, vehicle_track_width_);
+        std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4, wheel_radius_, vehicle_track_width_, vehicle_length_);
 
     std::lock_guard<std::mutex> lock(husky_data_buffer_->joint_state_mutex);
     husky_data_buffer_->joint_state_q.push(joint_ptr);
@@ -105,7 +106,7 @@ void HuskyComms::jointStateCallback(const sensor_msgs::JointState& joint_msg)
 
 void HuskyComms::jointStateVelocityCallback(const sensor_msgs::JointState& joint_msg)
 {   
-    auto joint_state_ptr = std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4, wheel_radius_, vehicle_track_width_);
+    auto joint_state_ptr = std::make_shared<husky_inekf::JointStateMeasurement>(joint_msg, 4, wheel_radius_, vehicle_track_width_, vehicle_length_);
 
     // set velocity message:
     geometry_msgs::TwistStamped vel_msg;
