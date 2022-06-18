@@ -104,7 +104,7 @@ namespace husky_inekf {
                 double vr = (linear_velocity_(1) + linear_velocity_(3)) / 2.0;
                 double vl = (linear_velocity_(0) + linear_velocity_(2)) / 2.0;
                 body_lin_vel_(0) = (vr + vl) / 2.0 ; // [x y z]
-                body_ang_vel_(2) = (vr - vl) / vehicle_track_width_* np.cos(np.arctan(vehicle_length_/vehicle_track_width_))**2; // [dx dy dz]
+                body_ang_vel_(2) = (vr - vl) / vehicle_track_width_* std::pow(std::cos(std::atan(vehicle_length_, vehicle_track_width_)), 2); // [dx dy dz]
             }
 
             inline const Eigen::VectorXd& getJointPosition() const {
