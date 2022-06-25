@@ -1,6 +1,26 @@
 # husky_inekf
 This project contains a Invariant Kalman Filter system for wheeled robot state estimation. The InEKF takes in IMU measurements and body velocity estimation and estimate the robot's pose, velocity, and IMU biases.
 
+## Results
+<p float="left">
+  <img src="figures/husky_mair_setup.jpg" width="45%" />
+  <img src="figures/husky_mair_setup2.jpg" width="45%" /> 
+</p>
+<b>Figure 1:</b> Setup for the Husky experiments. Markers are attached on the robot body and a motion capture system is used to track the ground truth robot pose.
+
+<p float="left">
+  <img src="figures/husky_mair_M_trajectory_birdeye.png" width="85%" />
+</p>
+
+<b>Figure 2:</b> Estimated trajectory of the Husky robot on the grass M dataset. Dash line: ground truth trajectory from a motion capture system. Green line: InEKF result with velocity correction from wheel encoders. Blue line: InEKF result with velocity correction from the motion capture system.
+
+
+<p float="left">
+  <img src="figures/husky_mair_UM_trajectory_birdeye.png" width="85%" /> 
+</p>
+
+<b>Figure 3:</b> Estimated trajectory of the Husky robot on the grass UM dataset. Dash line: ground truth trajectory from a motion capture system. Green line: InEKF result with velocity correction from wheel encoders. Blue line: InEKF result with velocity correction from the motion capture system.
+
 ## Dependencies
 * ROS
 * Eigen3
