@@ -1,5 +1,5 @@
 # husky_inekf
-This project contains a Invariant Kalman Filter system for wheeled robot state estimation. The InEKF takes in IMU measurements and body velocity estimation and estimate the robot's pose, velocity, and IMU biases.
+This project contains an Invariant Kalman Filter system for wheeled robot state estimation. The InEKF takes in IMU measurement and body velocity estimation and estimates the robot's pose, velocity, and IMU biases.
 
 ## Results
 <p float="left">
