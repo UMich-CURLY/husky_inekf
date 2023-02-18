@@ -54,7 +54,7 @@ settings:
   ########################
   # We assume the body frame to be at the imu position.
   # X pointing forward, Y to the left, Z pointing up.
-  rotation_body_imu: [0, 0.7071, -0.7071, 0] # Orientation from IMU to the body frame. Quaternion [w,x,y,z]
+  rotation_imu_body: [0, 0.7071, -0.7071, 0] # Orientation from IMU to the body frame. Quaternion [w,x,y,z]
   rotation_cam_imu: [1,0,0,0]                # Orientation from camera to the body frame. Quaternion [w,x,y,z]
   translation_cam_imu: [0,0,0]               # Translation from camera to the body frame. [x,y,z]
 
