@@ -1,6 +1,6 @@
 settings:
 
-  imu_topic: "/gx5_1/imu/data"  # input imu topic
+  imu_topic: "/imu1/imu"  # input imu topic
   joint_topic: "/joint_states"  # input wheel encoder topic
   
   ################################################################################
@@ -14,9 +14,9 @@ settings:
   # We use v_wheel = angluar_velocity * wheel_radius. v_body = (v_right_wheel + v_left_wheel)/2.
   enable_wheel_velocity_update: true
   wheel_velocity_topic: "/joint_states"
-  wheel_radius: 0.1651    # wheel radius (m). 
-  vehicle_track_width: 0.555  # distance between right and left wheel (m).
-  vehicle_length: 0.540 # distance between forward and back wheel centers (m).
+  wheel_radius:  0.06033    # wheel radius (m). 
+  vehicle_track_width: 0.3748  # distance between right and left wheel (m).
+  vehicle_length: 0.440 # distance between forward and back wheel centers (m).
 
   # Enable correction using body velocity estimated from camera odometry
   # The filter will take the difference between two pose and compute the velocity from it.
@@ -54,7 +54,8 @@ settings:
   ########################
   # We assume the body frame to be at the imu position.
   # X pointing forward, Y to the left, Z pointing up.
-  rotation_imu_body: [0, 0.7071, -0.7071, 0] # Orientation from IMU to the body frame. Quaternion [w,x,y,z]
+  # rotation_imu_body: [0, 0.7071, -0.7071, 0] # Orientation from IMU to the body frame. Quaternion [w,x,y,z]
+  rotation_imu_body: [1, 0, 0, 0] # Orientation from IMU to the body frame. Quaternion [w,x,y,z]
   rotation_cam_imu: [1,0,0,0]                # Orientation from camera to the body frame. Quaternion [w,x,y,z]
   translation_cam_imu: [0,0,0]               # Translation from camera to the body frame. [x,y,z]
 
